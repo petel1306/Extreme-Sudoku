@@ -3,8 +3,14 @@
  */
 
 #include <stdio.h>
+#include "game.h"
 
 int main() {
-   printf("Hello, World!");
-   return 0;
+	/*
+	 * Temporary implementation. "init" will be used later.
+	 */
+	Game* init = createGame();
+	unsigned long offset = (uintptr_t) init->turn;
+	printf("Hello World: %ld", (unsigned long) offset);
+	return 0;
 }

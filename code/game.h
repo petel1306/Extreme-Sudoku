@@ -1,14 +1,42 @@
-#include "main_aux.h"
+#include "list_handler.h"
+
+
+/**
+ * Represents the mode of the game. whether init, edit or solve.
+ */
+typedef enum {INIT, EDIT, SOLVE} GameMode;
+
+
+/**
+ * This struct represents the current game status and properties.
+ * mode : init, edit, solve.
+ * markErros: 0 - false, 1 - true.
+ */
+typedef struct {
+	Turn* turn;
+	GameMode mode;
+	unsigned int markErrors : 1;
+} Game;
+
+Game* createGame();
+
+void destroyGame(Game *game);
+
+
 
 
 typedef enum {SOLVE_NONE, SOLVE_FILE_NOT_EXIST, SOLVE_INCORRECT_FORMAT, SOLVE_INCORRECT_RANGE, SOLVE_INVALID_FIXED_CELLS} SolveError;
 
+/**
+ *Note: solve gets unuseful former game as input and returns an new GAME object as output (if no errors).
+ */
 SolveError solve(Game *game, char* path);
 
 
 typedef enum {EDIT_NONE} EditError; /* Will be filled later according to implementation needs*/
 /**
- * Note path is originally optimal.
+ * Note: edit gets unuseful former game as input and returns an new GAME object as output (if no errors).
+ * Note: path is originally optimal.
  * @pre  file not supplied --> path = "" (empty string).
  */
 EditError edit(Game *game, char* path);
@@ -54,7 +82,7 @@ UndoRedoError undo(Game *game, char *change);
 /**
  * @post change = string of the change that "redo" command has made
  */
-UndoRedoError undo(Game *game, char *change);
+UndoRedoError redo(Game *game, char *change);
 
 
 typedef enum {SAVE_NONE} SaveError; /* Will be filled later according to implementation needs*/

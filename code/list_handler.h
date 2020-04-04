@@ -3,7 +3,7 @@
 /**
  * Constitutes a node of the double-linked-list that represnts the turns of the user.
  * Each node represents a turn. you can go over the turns as you wish.
- * char * change - The change that has been made on the board following the command.
+ * char * change - The change has been made on the board following the turn.
  */
 struct list_node{
 	Board board;
@@ -14,6 +14,10 @@ struct list_node{
 typedef struct list_node Turn;
 
 Turn* createTurn();
+
+Turn* getNext(Turn* curr);
+
+Turn* getPrev(Turn* curr);
 
 Turn* getHead(Turn* curr);
 

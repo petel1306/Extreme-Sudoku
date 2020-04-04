@@ -6,6 +6,7 @@
  */
 Turn* createTurn() {
 	Turn *res = (Turn*) malloc(sizeof(Turn));
+	res->change = NULL;
 	res->next = NULL;
 	res->prev = NULL;
 	return res;
@@ -30,8 +31,8 @@ void deleteTurnsRec(Turn* curr) {
  * Deletes and frees further turns of a given turn (excluding the turn itself)
  */
 void deleteFurtherTurns(Turn* curr) {
-	curr->next = NULL;
 	deleteTurnsRec(curr->next);
+	curr->next = NULL;
 }
 
 /**

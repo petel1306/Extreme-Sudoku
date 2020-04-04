@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 /**
- * Creates an empty board
+ * Creates a blank board
  */
 Board* createBoard(int m, int n) {
 	int i;
