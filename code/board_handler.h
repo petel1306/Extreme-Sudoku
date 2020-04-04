@@ -1,3 +1,6 @@
+#ifndef BOARD_HANDLER_H_
+#define BOARD_HANDLER_H_
+
 /**
  * Represents the state of a cell. whether regular, fixed or erroneous
  */
@@ -28,3 +31,5 @@ Board* createBoard(int m, int n);
 Board* cloneBoard(Board *board);
 
 void destroyBoard(Board *board);
+
+#endif

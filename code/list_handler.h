@@ -6,7 +6,7 @@
  * char * change - The change has been made on the board following the turn.
  */
 struct list_node{
-	Board board;
+	Board* board;
 	char* change;
 	struct list_node *next;
 	struct list_node *prev;

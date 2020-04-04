@@ -58,10 +58,14 @@ ResetError reset(Game *game) {
 }
 
 SolveError solve(Game *game, char* path) {
+	Game* newGame = createGame();
+	newGame->mode = SOLVE;
+	newGame->markErrors = 1;
+	newGame->turn->board = solveBoardFile(path);
+	sprintf(newGame->turn->change, "solve %s", path);
+
+
 	destroyGame(game);
-	game = createGame();
-	game->mode = SOLVE;
-	game->markErrors = 1;
-	printf(path);
+	game = newGame;
 	return SOLVE_NONE;
 }

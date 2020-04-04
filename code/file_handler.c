@@ -1,3 +1,12 @@
 #include "file_handler.h"
+#include <stdio.h>
 
-typedef int make_iso_compilers_happya;
+Board* solveBoardFile(char *path){
+	fprintf(stdout, path);
+	return createBoard(3,3);
+}
+
+Board* editBoardFile(char *path){
+	fprintf(stdout, path);
+	return createBoard(3,3);
+}

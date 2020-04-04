@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include "game.h"
+#include "main_aux.h"
 
 int main() {
 	/*

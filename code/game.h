@@ -1,5 +1,5 @@
 #include "list_handler.h"
-
+#include "file_handler.h"
 
 /**
  * Represents the mode of the game. whether init, edit or solve.
