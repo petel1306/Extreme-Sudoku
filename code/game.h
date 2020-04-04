@@ -22,24 +22,26 @@ Game* createGame();
 
 void destroyGame(Game *game);
 
+void deleteGameTurns(Game *game);
 
 
+/*
+ * Note: enum of solve, edit errors appears in "file_handler.h"
+ */
 
-typedef enum {SOLVE_NONE, SOLVE_FILE_NOT_EXIST, SOLVE_INCORRECT_FORMAT, SOLVE_INCORRECT_RANGE, SOLVE_INVALID_FIXED_CELLS} SolveError;
 
 /**
  *Note: solve gets unuseful former game as input and returns an new GAME object as output (if no errors).
  */
-SolveError solve(Game *game, char* path);
+FileError solve(Game *game, char* path);
 
 
-typedef enum {EDIT_NONE} EditError; /* Will be filled later according to implementation needs*/
 /**
  * Note: edit gets unuseful former game as input and returns an new GAME object as output (if no errors).
  * Note: path is originally optimal.
- * @pre  file not supplied --> path = "" (empty string).
+ * @pre  file not supplied --> path = NULL.
  */
-EditError edit(Game *game, char* path);
+FileError edit(Game *game, char* path);
 
 
 typedef enum {MARK_NONE, MARK_NOT_AVAILABLE, MARK_INCORRECT_VALUE} MarkError;
@@ -52,7 +54,7 @@ void print_board(Game *game);
 
 typedef enum {SET_NONE} SetError; /* Will be filled later according to implementation needs*/
 
-MarkError set(Game *game, int x, int y, int val);
+SetError set(Game *game, int x, int y, int val);
 
 
 typedef enum {VALIDATE_NONE, VALIDATE_NOT_AVAILABLE, VALIDATE_ERRONEOUS} ValidateError;
@@ -85,7 +87,7 @@ UndoRedoError undo(Game *game, char *change);
 UndoRedoError redo(Game *game, char *change);
 
 
-typedef enum {SAVE_NONE} SaveError; /* Will be filled later according to implementation needs*/
+typedef enum {SAVE_NONE, SAVE_NOT_AVAILABLE, SAVE_ERRONEOUS, SAVE_WITHOUT_SOLUTION} SaveError;
 
 SaveError save(Game *game, char *path);
 

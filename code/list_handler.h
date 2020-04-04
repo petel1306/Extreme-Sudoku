@@ -15,12 +15,8 @@ typedef struct list_node Turn;
 
 Turn* createTurn();
 
-Turn* getNext(Turn* curr);
-
-Turn* getPrev(Turn* curr);
+void destroyTurn(Turn *turn);
 
 Turn* getHead(Turn* curr);
 
-void deleteFurtherTurns(Turn* curr);
-
-void deleteAllTurns(Turn* curr);
+void deleteTurnsAhead(Turn* curr);

@@ -6,10 +6,8 @@
 #include "game.h"
 #include "main_aux.h"
 
+/* Temporary implementation. "init" will be used later. */
 int main() {
-	/*
-	 * Temporary implementation. "init" will be used later.
-	 */
 	Game* init = createGame();
 	unsigned long offset = (uintptr_t) init->turn;
 	printf("Hello World: %ld", (unsigned long) offset);

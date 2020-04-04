@@ -3,5 +3,16 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 
-typedef int make_iso_compilers_happy;
+/*
+int main() {
+	int a = 3;
+	int b = 5;
+	char* str = (char*) malloc(100 * sizeof(char));
+	sprintf(str, "Hello World: %d, %d \n", a, b);
+	printf(str);
+	return 0;
+}
+*/
+

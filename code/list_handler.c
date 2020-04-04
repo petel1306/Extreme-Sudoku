@@ -1,15 +1,24 @@
 #include "list_handler.h"
 #include <stdlib.h>
 
+#define STRING_BUFFER 256
+
 /**
  * Creates an empty turn
  */
 Turn* createTurn() {
 	Turn *res = (Turn*) malloc(sizeof(Turn));
-	res->change = NULL;
+	res->board = NULL;
+	res->change = (char*) malloc(STRING_BUFFER * sizeof(char));
 	res->next = NULL;
 	res->prev = NULL;
 	return res;
+}
+
+void destroyTurn(Turn *turn) {
+	free(turn->board);
+	free(turn->change);
+	free(turn);
 }
 
 /**
@@ -20,24 +29,12 @@ Turn* getHead(Turn* curr) {
 	return curr;
 }
 
-void deleteTurnsRec(Turn* curr) {
+/**
+ * Deletes and frees all turns ahead of a given turn (including the turn itself)
+ */
+void deleteTurnsAhead(Turn* curr) {
 	if (curr!=NULL) {
-			deleteTurnsRec(curr->next);
-			free(curr);
+			deleteTurnsAhead(curr->next);
+			destroyTurn(curr);
 		}
-}
-
-/**
- * Deletes and frees further turns of a given turn (excluding the turn itself)
- */
-void deleteFurtherTurns(Turn* curr) {
-	deleteTurnsRec(curr->next);
-	curr->next = NULL;
-}
-
-/**
- * Deletes and frees all turns exist in the list
- */
-void deleteAllTurns(Turn* curr) {
-	deleteTurnsRec(getHead(curr));
 }
