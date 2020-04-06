@@ -12,4 +12,4 @@ typedef enum {FILE_NONE, FILE_NOT_EXIST, FILE_INCORRECT_FORMAT, FILE_INCORRECT_R
 FileError loadFileToBoard(char *path, Board *board, int solveMode);
 
 
-void saveBoardToFile(char *path, Board board, int isEdit);
+void saveBoardToFile(char *path, Board *board, int isEdit);

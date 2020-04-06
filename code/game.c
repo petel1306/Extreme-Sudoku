@@ -71,19 +71,40 @@ ResetError reset(Game *game) {
 
 FileError solve(Game *game, char* path) {
 	FileError error;
-	Board* newdBoard = NULL;
+	Board* newBoard = NULL;
+	Board* testBoard;
+	int N;
+	int i;
+	int j;
 
-	error = loadFileToBoard(path, newdBoard, 1);
+	error = loadFileToBoard(path, newBoard, 1);
 	if (error!=FILE_NONE) {
 		return error;
 	}
 
-	/* Need to handle erroneous board */
+	/* Validates that when ignoring non-fixed cells the board is not erroneous. */
+	testBoard = cloneBoard(newBoard);
+	N = testBoard->m * testBoard->n;
+	for (i=0; i<N; ++i){
+		for (j=0; j<N; ++j) {
+			if (testBoard->cells[i][j].state != FIXED) {
+				testBoard->cells[i][j].value = 0;
+			}
+			testBoard->cells[i][j].state = REG;
+		}
+	}
+	updateBoardStates(testBoard);
+	if (isErrBoard(testBoard)) {
+		return FILE_ERRONEOUS_FIXED_CELLS;
+	}
+	destroyBoard(testBoard);
 
+	/* At this point the board was successfuly loaded from the path. Now we save the new configutation. */
 	deleteGameTurns(game);
 	game->mode = SOLVE;
 	game->turn = createTurn();
-	game->turn->board = newdBoard;
+	updateBoardStates(newBoard);
+	game->turn->board = newBoard;
 	sprintf(game->turn->change, "solve %s", path);
 
 	return FILE_NONE;
@@ -102,12 +123,12 @@ FileError edit(Game *game, char* path) {
 			return error;
 		}
 	}
-
-	/* Need to mark erroneous cells on the board */
+	updateBoardStates(newBoard);
 
 	deleteGameTurns(game);
 	game->mode = EDIT;
 	game->turn = createTurn();
+	updateBoardStates(newBoard);
 	game->turn->board = newBoard;
 	sprintf(game->turn->change, "edit %s", path);
 
@@ -116,17 +137,22 @@ FileError edit(Game *game, char* path) {
 
 
 SaveError save(Game *game, char *path) {
-	Board board = *(game->turn->board);
+	Board *board = game->turn->board;
 	unsigned int isEdit = (game->mode == EDIT);
 
 	if (game->mode == INIT) {
 		return SAVE_NOT_AVAILABLE;
 	}
-	/*
 	if (isEdit) {
-		<Validates the board>
+		if (isErrBoard(board)) {
+			return SAVE_ERRONEOUS;
+		}
+		/*
+		if ( <board is not solvable> ) {
+			return SAVE_WITHOUT_SOLUTION;
+		}
+		*/
 	}
-	*/
 	saveBoardToFile(path, board, isEdit);
 	return SAVE_NONE;
 }

@@ -8,6 +8,8 @@
  * @post board contains the scaned file (if no errors)
  */
 FileError loadFileToBoard(char *path, Board *board, int isSolve) {
+	int m;
+	int n;
 	int N;
 	int i;
 	int j;
@@ -19,10 +21,12 @@ FileError loadFileToBoard(char *path, Board *board, int isSolve) {
 		return FILE_NOT_EXIST;
 	}
 
-	if (fscanf(file, "%d", &board->m) != 1 || fscanf(file, "%d", &board->n) != 1) { /* Scanning m, n */
+	if (fscanf(file, "%d", &m) != 1 || fscanf(file, "%d", &n) != 1) { /* Scanning m, n */
 		return FILE_INCORRECT_FORMAT;
 	}
-	N = board->m * board->n;
+
+	*board = *createBoard(m, n);
+	N = m*n;
 
 	for (i=0; i<N; ++i) { /* Scanning board cells and filling their values to the board */
 		for (j=0; j<N; ++j) {
@@ -35,9 +39,6 @@ FileError loadFileToBoard(char *path, Board *board, int isSolve) {
 			board->cells[i][j].value = val;
 			if (isSolve && (c = fgetc(file)) == '.') {/* Checking the cell's state */
 				board->cells[i][j].state = FIXED;
-			}
-			else {
-				board->cells[i][j].state = REG;
 			}
 		}
 	}
@@ -52,7 +53,7 @@ FileError loadFileToBoard(char *path, Board *board, int isSolve) {
  * @pre path is existing file
  * @post file in "path" contains the board
  */
-void saveBoardToFile(char *path, Board board, int isEdit) {
+void saveBoardToFile(char *path, Board *board, int isEdit) {
 	int N;
 	int i;
 	int j;
@@ -60,21 +61,21 @@ void saveBoardToFile(char *path, Board board, int isEdit) {
 	CellState state;
 
 	FILE *file = fopen(path, "w");
-	fprintf(file , "%d %d\n", board.m, board.n); /* Writing the board's sizes */
-	N = board.m * board.n;
+	fprintf(file , "%d %d\n", board->m, board->n); /* Writing the board's sizes */
+	N = board->m * board->n;
 	for (i=0; i<N; ++i) { /* Scanning board cells and writing their values to the file */
 		for (j=0; j<N-1; ++j) {
-			val = board.cells[i][j].value;
-			state = board.cells[i][j].state;
-			if (val!=0 && (isEdit || state==FIXED)) { /* Writing the inner cell values in each line */
+			val = board->cells[i][j].value;
+			state = board->cells[i][j].state;
+			if (val!=0 && (isEdit || state==FIXED)) { /* In edit mode, mark the cell as FIXED. */
 				fprintf(file, "%d. ", val);
 			}
 			else {
 				fprintf(file, "%d ", val);
 			}
 		}
-		val = board.cells[i][N-1].value;
-		state = board.cells[i][N-1].state;
+		val = board->cells[i][N-1].value;
+		state = board->cells[i][N-1].state;
 		if (val!=0 && (isEdit || state==FIXED)) { /* Writing the most right cell value in each line */
 			fprintf(file, "%d.\n", val);
 		}
