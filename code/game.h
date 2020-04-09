@@ -25,6 +25,14 @@ void destroyGame(Game *game);
 void deleteGameTurns(Game *game);
 
 
+typedef enum {NOT_COMPLETED, ERRONEOUS_COMPLETED, SUCCESSFUL_COMPLETED, COMPLETED_UNAVAILABLE} BoardState;
+/**
+ * Notifies of the board's state. If successful completed, goes back to init mode.
+ * The command available only in solve mode.
+ */
+BoardState isCompleted(Game *game);
+
+
 /*
  * Note: enum of solve, edit errors appears in "file_handler.h"
  */
@@ -49,27 +57,29 @@ typedef enum {MARK_NONE, MARK_NOT_AVAILABLE, MARK_INCORRECT_VALUE} MarkError;
 MarkError mark_errors(Game *game, int bool);
 
 
-void print_board(Game *game);
+typedef enum {PRINT_NONE, PRINT_NOT_AVAILABLE} PrintError;
+
+PrintError print_board(Game *game);
 
 
-typedef enum {SET_NONE} SetError; /* Will be filled later according to implementation needs*/
+typedef enum {SET_NONE, SET_NOT_AVAILABLE, SET_INVALID_X, SET_INVALID_Y, SET_INVALID_VALUE, SET_FIXED_CELL} SetError;
 
 SetError set(Game *game, int x, int y, int val);
 
 
-typedef enum {VALIDATE_NONE, VALIDATE_NOT_AVAILABLE, VALIDATE_ERRONEOUS} ValidateError;
+typedef enum {VALID_NONE, VALID_NOT_AVAILABLE, VALID_ERRONEOUS} ValidateError;
 /**
- * @post (solvable == 0) || (solvable == 1). (1 if board is solvable and 0 if not)
+ * @post VALIDATE_NONE --> (*solvable == 0) || (*solvable == 1). (1 if board is solvable and 0 if not)
  */
 ValidateError valdiate(Game *game, unsigned int *solvable);
 
 
-typedef enum {GUESS_NONE} GuessError; /* Will be filled later according to implementation needs*/
+typedef enum {GUESS_NONE, GUESS_NOT_AVAILABLE, GUESS_ERRONEOUS} GuessError;
 
 GuessError guess(Game *game, float x);
 
 
-typedef enum {GENERATE_NONE} GenerateError; /* Will be filled later according to implementation needs*/
+typedef enum {GEN_NONE, GEN_NOT_AVAILABLE,  GEN_INVALID_X, GEN_INVALID_Y, GEN_NOT_SUCCEEDED} GenerateError;
 
 GenerateError generate(Game *game, int x, int y);
 
@@ -77,14 +87,16 @@ GenerateError generate(Game *game, int x, int y);
 typedef enum {DO_NONE, DO_NOT_AVAILABLE, DO_NO_MOVES} UndoRedoError; /* Mutal errors enum for both undo & redo comands*/
 
 /**
- * @post change = string of the change that "undo" command has made
+ * @post output = string of the change that "undo" command has made
+ * Note: in case no error - parser should print the change and then board;
  */
-UndoRedoError undo(Game *game, char *change);
+UndoRedoError undo(Game *game, char *output);
 
 /**
- * @post change = string of the change that "redo" command has made
+ * @post output = string of the change that "redo" command has made
+ * Note: in case no error - parser should print the change and then board;
  */
-UndoRedoError redo(Game *game, char *change);
+UndoRedoError redo(Game *game, char *output);
 
 
 typedef enum {SAVE_NONE, SAVE_NOT_AVAILABLE, SAVE_ERRONEOUS, SAVE_WITHOUT_SOLUTION} SaveError;
@@ -92,16 +104,17 @@ typedef enum {SAVE_NONE, SAVE_NOT_AVAILABLE, SAVE_ERRONEOUS, SAVE_WITHOUT_SOLUTI
 SaveError save(Game *game, char *path);
 
 
-typedef enum {HINT_NONE} HintError; /* Will be filled later according to implementation needs*/
-/* Maybe have to add output print value as well*/
+typedef enum {HINT_NONE, HINT_NOT_AVAILABLE, HINT_INVALID_X, HINT_INVALID_Y, HINT_ERRONEOUS, HINT_FIXED_CELL, HINT_NON_EMPTY, HINT_UNSOLVABLE} HintError;
 
-HintError hint(Game *game, int x, int y);
+/**
+ * @post HINT_NONE --> *hintVal = the value of cell <X,Y> found by the *ILP* solution
+ */
+HintError hint(Game *game, int x, int y, int *hintVal);
 
-
-typedef enum {GUESSHINT_NONE} GuessHintError; /* Will be filled later according to implementation needs*/
-/* Maybe have to add output print value as well*/
-
-GuessHintError guess_hint(Game *game, int x, int y);
+/**
+ * @post HINT_NONE --> *hintVal = array of all legal values of cell <X,Y> and their scores found by the *LP* solution
+ */
+HintError guess_hint(Game *game, int x, int y, int **hintValList);
 
 
 typedef enum {NUM_NONE, NUM_NOT_AVAILABLE, NUM_ERRONEOUS} NumSolutionsError;
@@ -117,8 +130,3 @@ AutofillError autofill(Game *game);
 typedef enum {RESET_NONE, RESET_NOT_AVAILABLE} ResetError;
 
 ResetError reset(Game *game);
-
-/**
- * note: an exit message should be printed
- */
-void exitgame(Game *game);

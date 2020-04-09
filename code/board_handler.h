@@ -24,6 +24,7 @@ typedef struct {
 	int m;
 	int n;
 	Cell **cells;
+	int nonEmptyAmount; /* Number of non empty cells in the board */
 } Board;
 
 Board* createBoard(int m, int n);
@@ -32,18 +33,17 @@ Board* cloneBoard(Board *board);
 
 void destroyBoard(Board *board);
 
-void getRowCells(Board *board, int rowInd, Cell** cells);
-void getColumnCells(Board *board, int colInd, Cell** cells);
-void getBlockCells(Board *board, int blockInd, Cell** cells);
+void printBoard(Board *board, int printErroneous);
 
-int getBlockInd(Board *board, int i, int j);
+void unmarkValidNeighbors(Board *board, int rowInd, int colInd, int val);
 
-void updateErroneous(Cell **cells, int N);
+void markErroneousNeighbors(Board *board, int rowInd, int colInd);
 
-void updateNeighborsState(Board *board, int rowInd, int colInd);
+void markErroneousBoard(Board *board);
 
-void updateBoardStates(Board *board);
+int isErrBoard(Board *board);
 
-unsigned int isErrBoard(Board *board);
+int hasSingleOption(Board *board, int rowInd, int colInd);
+
 
 #endif

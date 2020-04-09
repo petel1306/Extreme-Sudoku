@@ -5,9 +5,12 @@
  * Scans file and transforms it into a Board.
  * @param solveMode = true --> function called from solveBoardFile;
  * @pre path is existing file
+ * @pre board != NULL
  * @post board contains the scaned file (if no errors)
  */
-FileError loadFileToBoard(char *path, Board *board, int isSolve) {
+FileError loadFileToBoard(char *path, Board **boardPointer, int isSolve) {
+	FileError error;
+	Board* board;
 	int m;
 	int n;
 	int N;
@@ -18,33 +21,47 @@ FileError loadFileToBoard(char *path, Board *board, int isSolve) {
 
 	FILE *file = fopen(path, "r");
 	if (file == NULL ){
-		return FILE_NOT_EXIST;
+		error = FILE_NOT_EXIST;
+		goto exit;
 	}
 
-	if (fscanf(file, "%d", &m) != 1 || fscanf(file, "%d", &n) != 1) { /* Scanning m, n */
-		return FILE_INCORRECT_FORMAT;
+	if (fscanf(file, "%d", &m)!=1 || m <= 0 || fscanf(file, "%d", &n)!=1 || n<=0) { /* Scanning m, n */
+		error = FILE_INCORRECT_FORMAT;
+		goto exit;
 	}
 
-	*board = *createBoard(m, n);
+	board = createBoard(m, n);
 	N = m*n;
 
 	for (i=0; i<N; ++i) { /* Scanning board cells and filling their values to the board */
 		for (j=0; j<N; ++j) {
 			if (fscanf(file, "%d", &val) != 1) {
-				return FILE_INCORRECT_FORMAT;
+				error = FILE_INCORRECT_FORMAT;
+				goto exit;
 			}
 			if (val < 0 || val > N) {
-				return FILE_INCORRECT_RANGE;
+				error = FILE_INCORRECT_RANGE;
+				goto exit;
 			}
 			board->cells[i][j].value = val;
-			if (isSolve && (c = fgetc(file)) == '.') {/* Checking the cell's state */
+			if (val != 0) {
+				++board->nonEmptyAmount;
+			}
+			c = fgetc(file);
+			if (isSolve && c == '.') {/* Checking the cell's state */
 				board->cells[i][j].state = FIXED;
 			}
 		}
 	}
+	error = FILE_NONE;
+	*boardPointer = board;
+
+	exit: /* Exiting clean */
 	fclose(file);
-	/* printf("Board: m=%d, n=%d", board->m, board->n) */;
-	return FILE_NONE;
+	if (error != FILE_NONE) {
+		destroyBoard(board);
+	}
+	return error;
 }
 
 /**

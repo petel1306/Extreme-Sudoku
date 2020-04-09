@@ -1,5 +1,8 @@
 #include "board_handler.h"
+#include "main_aux.h"
 #include <stdlib.h>
+#include <stdio.h>
+
 
 /**
  * Creates a blank board
@@ -13,6 +16,7 @@ Board* createBoard(int m, int n) {
 	Board *res = (Board*) malloc(sizeof(Board));
 	res->m = m;
 	res->n = n;
+	res->nonEmptyAmount = 0;
 	mat = (Cell**) malloc(N * sizeof(Cell*));
 	for (i=0; i<N; ++i) {
 		row = (Cell*) malloc (N * sizeof(Cell));
@@ -34,6 +38,7 @@ Board* cloneBoard(Board *board){
 	int i;
 	int j;
 	int N = board->m * board->n;
+	newBoard->nonEmptyAmount = board->nonEmptyAmount;
 	for (i=0; i<N; ++i) {
 		for (j=0; j<N; ++j) {
 			newBoard->cells[i][j] = board->cells[i][j]; /*Assure this assignment is legal*/
@@ -47,12 +52,63 @@ Board* cloneBoard(Board *board){
  */
 void destroyBoard(Board *board) {
 	int i;
-	int N = board->m * board->n;
-	for (i=0; i<N; i++) {
+
+	if (board == NULL)
+		return;
+
+	for (i=0; i<(board->m * board->n); i++) {
 		free(board->cells[i]);
 	}
 	free(board->cells);
 	free(board);
+}
+
+/**
+ * Returns the char value of a cell state
+ */
+char stateToChar(CellState state, int printErroneous) {
+	switch (state) {
+	case REG: return ' ';
+	case FIXED: return '.';
+	case ERRONEOUS: return (printErroneous ? '*' : ' ');
+	}
+	return '\0';
+}
+
+
+void printSeparatorRow(int len) {
+	int i;
+	for (i=0; i<len; ++i) {
+		printf("-");
+	}
+	printf("\n");
+}
+/**
+ * Prints the board as instructed in the guide
+ */
+void printBoard(Board *board, int printErroneous) {
+	Cell cell;
+	int m = board->m;
+	int n = board->n;
+	int N = m * n;
+	int printWidth = 4*N+m+1;
+	int i; int ii;
+	int j; int jj;
+
+	printSeparatorRow(printWidth);
+	for (i=0; i<n; ++i) { /* i represets row block index */
+		for (ii=0; ii<m; ++ii) { /* ii represets row index inside a block */
+			for(j=0; j<m; ++j) { /* j represets column block index */
+				printf("|");
+				for (jj=0; jj<n; ++jj) { /* jj represets column index inside a block */
+					cell = board->cells[i*m + ii][j*n + jj];
+					printf(" %2d%c", cell.value, stateToChar(cell.state, printErroneous));
+				}
+			}
+			printf("|\n");
+		}
+		printSeparatorRow(printWidth);
+	}
 }
 
 /**
@@ -87,11 +143,15 @@ void getColumnCells(Board *board, int colInd, Cell** cells) {
 void getBlockCells(Board *board, int blockInd, Cell** cells) {
 	int blockIndR = blockInd / board->m; /* block horizontal coordinate */
 	int blockIndC = blockInd % board->m; /* block vertical coordinate */
+	int blockOffsetR = blockIndR * board->m;
+	int blockOffsetC = blockIndC * board->n;
+	int ind = 0;
 	int i;
 	int j;
-	for (i = blockIndR * board->m; i < board->m; ++i) {
-		for (j = blockIndC * board->n; j < board->n; ++j) {
-			cells[i * board->n + j] = &board->cells[i][j];
+	for (i = 0 ; i < board->m; ++i) {
+		for (j = 0; j < board->n; ++j) {
+			cells[ind] = &board->cells[blockOffsetR + i][blockOffsetC + j];
+			++ind;
 		}
 	}
 }
@@ -102,58 +162,8 @@ int getBlockInd(Board *board, int i, int j) {
 	return blockIndR * board->m + blockIndC;
 }
 
-/*
-*
- * Checking if there are erroneous value in the board
- * @param checkAll!=0 --> check erroneous amoung all cells states.
- * @param checkAll==0 --> check erroneous amoung fixed cells
-
-
-unsigned int isErroneousBoard(Board *board, int checkAll) {
-	unsigned int errBool = 0;
-	int N = board->m * board->n;
-	unsigned int *isShown[3];
-	Cell **cells[3];
-	int val[3];
-	int i;
-	int j;
-	int k;
-	for (k=0; k<3; ++k) {
-		isShown[k] = (unsigned int*) malloc(N * sizeof(unsigned int));
-		cells[k] = (Cell**) malloc(N * sizeof(Cell*));
-	}
-	* Checks erroneous for all rows, columns and blocks
-	for (i=0; i<N; ++i) {
-		getRowCells(board, i, cells[0]);
-		getColumnCells(board, i, cells[1]);
-		getBlockCells(board, i, cells[2]);
-		for (j=0; j<N; ++j) {  * Initialize isShown
-			isShown[j] = 0;
-		}
-		for (j=0; j<N; ++j) {
-			for (k=0; k<3; ++k) {
-				* If encounter the same value again in a certein row/cell/root - jump to the end of the function and returns true
-				if (checkAll || cells[k][j]->state == FIXED) {
-					val[k] = cells[k][j]->value;
-					if (isShown[k][val[k]]) {  There is same values in row/column/block
-						errBool = 1;
-						goto exit;
-					}
-					isShown[k][val[k]] = 1;
-				}
-			}
-		}
-	}
-	exit:
-	for (k=0; k<3; ++k) {
-		free(isShown[k]);
-		free(cells[k]);
-	}
-	return errBool;
-}*/
-
 /**
- * Mark erroneous cells of certain value in a set of cells' pointers (the set may be a logic board row/column/block)
+ * Mark erroneous cells in a set of cells' pointers (the set may be a logic board row/column/block)
  */
 void updateErroneous(Cell **cells, int N) {
 	int *firstAppear = (int*) malloc((N+1) * sizeof(int));
@@ -189,17 +199,97 @@ void updateErroneous(Cell **cells, int N) {
 		idx = firstAppear[val];
 		if (idx != -1 && cells[idx]->state != FIXED) {
 			if (isSecondAppear[val]) {
-				cells[i]->state = ERRONEOUS;
+				cells[idx]->state = ERRONEOUS;
 			}
 			else {
 				cells[idx] = REG;
 			}
 		}
 	}
+	free(firstAppear);
+	free(isSecondAppear);;
+}
+
+/**
+ * Check if set of cells' pointers are valid in terms of constitute a non-erroneous row/column/block
+ */
+int isValidValue(Cell **cells, int N, int val) {
+	int counter = 0;
+	int i;
+	for (i=0; i<N; ++i) {
+		if (cells[i]->value == val) {
+			counter++;
+		}
+	}
+	if (counter < 2) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
 }
 
 
-void updateNeighborsState(Board *board, int rowInd, int colInd) {
+/**
+ * Unmarks neighbors of a specific value who are not erroneouse anymore.
+ * Mainly used in "set" command
+ */
+void unmarkValidNeighbors(Board *board, int rowInd, int colInd, int val) {
+	int N = board->m * board->n;
+	int blockInd = getBlockInd(board, rowInd, colInd);
+	int blockIndR = blockInd / board->m;
+	int blockIndC = blockInd % board->m;
+	Cell **cells = (Cell**) malloc(N * sizeof(Cell*));
+	int *boolRows = (int*) malloc(N * sizeof(int));
+	int *boolCols = (int*) malloc(N * sizeof(int));
+	int *boolBlocks = (int*) malloc(N * sizeof(int));
+	int i;
+	int j;
+	int k;
+
+	for (k=0; k<N; ++k){
+		getRowCells(board, k, cells); boolRows[k] = isValidValue(cells, N, val);
+		getColumnCells(board, k, cells); boolCols[k] = isValidValue(cells, N, val);
+		getBlockCells(board, k, cells); boolBlocks[k] = isValidValue(cells, N, val);
+	}
+
+	if (boolRows[rowInd]) {
+		for (j=0; j<N; ++j) {
+			if ( board->cells[rowInd][j].state == ERRONEOUS && boolCols[j] && boolBlocks[getBlockInd(board, rowInd, j)] ) {
+				board->cells[rowInd][j].state = REG;
+			}
+		}
+	}
+
+	if (boolCols[colInd]) {
+		for (i=0; i<N; ++i) {
+			if ( board->cells[i][colInd].state == ERRONEOUS && boolRows[i] && boolBlocks[getBlockInd(board, i, colInd)] ) {
+				board->cells[i][colInd].state = REG;
+			}
+		}
+	}
+
+
+	if (boolBlocks[blockInd]) {
+		for (i = blockIndR * board->m; i < ((blockIndR + 1) * board->m); ++i) {
+			for (j = blockIndC * board->n; j < ((blockIndC + 1) * board->n); ++j) {
+				if( board->cells[i][j].state == ERRONEOUS && boolRows[i] && boolCols[j]) {
+					board->cells[i][j].state = REG;
+				}
+			}
+		}
+	}
+	free(cells);
+	free(boolRows);
+	free(boolCols);
+	free(boolBlocks);
+}
+
+/**
+ * Marks all the erroneous cells who are neighbors of a given cell
+ * Mainly used in "set" command
+ */
+void markErroneousNeighbors(Board *board, int rowInd, int colInd) {
 	int N = board->m * board->n;
 	Cell **cells = (Cell**) malloc(N * sizeof(Cell*));
 	getRowCells(board, rowInd, cells); updateErroneous(cells, N);
@@ -209,7 +299,10 @@ void updateNeighborsState(Board *board, int rowInd, int colInd) {
 }
 
 
-void updateBoardStates(Board *board) {
+/**
+ * Mark all the erroneous cells on the board.
+ */
+void markErroneousBoard(Board *board) {
 	int N = board->m * board->n;
 	Cell **cells = (Cell**) malloc(N * sizeof(Cell*));
 	int i;
@@ -222,10 +315,10 @@ void updateBoardStates(Board *board) {
 }
 
 /**
- * @pre board cells' state is updated
+ * @pre board cells' state are updated
  * @post returns whether the board is erroneous or not
  */
-unsigned int isErrBoard(Board *board) {
+int isErrBoard(Board *board) {
 	int N = board->m * board->n;
 	int i;
 	int j;
@@ -235,6 +328,62 @@ unsigned int isErrBoard(Board *board) {
 				return 1;
 			}
 		}
+	}
+	return 0;
+}
+
+
+void updateSeenValues(Cell **cells, int N, int* seenValues) {
+	int i;
+	for (i=0; i<N; i++) {
+		seenValues[cells[i]->value] = 1;
+	}
+}
+
+
+/**
+ * If the board has a single option to fill the cell with a value, it returns the value. otherwise returns 0.
+ */
+int hasSingleOption(Board *board, int rowInd, int colInd) {
+	int N = board->m * board->n;
+	int *seenValues;
+	int val;
+	Cell **cells;
+	int counter = 0;
+	int suspectedValue;
+
+	if (board->cells[rowInd][colInd].value != 0) { /* Checks if empty cells */
+		return 0;
+	}
+
+	/* Allocates arrays */
+	seenValues = (int*) malloc((N+1) * sizeof(int));
+	for (val=0; val<=N; val++) {
+			seenValues[val] = 0;
+		}
+	cells = (Cell**) malloc(N * sizeof(Cell*));
+
+	/* Updating "seenValues" according to the cell's neighbors */
+	getRowCells(board, rowInd, cells); updateSeenValues(cells, N, seenValues);
+	getColumnCells(board, colInd, cells); updateSeenValues(cells, N, seenValues);
+	getBlockCells(board, getBlockInd(board, rowInd, colInd), cells); updateSeenValues(cells, N, seenValues);
+
+
+	/* Counting the non-filled values */
+	for (val=1; val<=N; val++) {
+		if (!seenValues[val]) {
+			counter++;
+			suspectedValue = val;
+		}
+	}
+
+	/* Free resources */
+	free(seenValues);
+	free(cells);
+
+	/* Returns value */
+	if (counter == 1) {
+		return suspectedValue;
 	}
 	return 0;
 }

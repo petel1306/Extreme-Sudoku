@@ -1,7 +1,7 @@
 #include "list_handler.h"
 #include <stdlib.h>
 
-#define STRING_BUFFER 256
+#define STRING_BUFFER 1024
 
 /**
  * Creates an empty turn
@@ -16,7 +16,7 @@ Turn* createTurn() {
 }
 
 void destroyTurn(Turn *turn) {
-	free(turn->board);
+	destroyBoard(turn->board);
 	free(turn->change);
 	free(turn);
 }
@@ -24,7 +24,7 @@ void destroyTurn(Turn *turn) {
 /**
  * Returns the state before the first turn of the player (i.e. the head of the list)
  */
-Turn* getHead(Turn* curr) {
+Turn* getHead(Turn *curr) {
 	for ( ; curr->prev!=NULL; curr = curr->prev);
 	return curr;
 }
@@ -32,9 +32,20 @@ Turn* getHead(Turn* curr) {
 /**
  * Deletes and frees all turns ahead of a given turn (including the turn itself)
  */
-void deleteTurnsAhead(Turn* curr) {
+void deleteTurnsBeyond(Turn* curr) {
 	if (curr!=NULL) {
-			deleteTurnsAhead(curr->next);
+			deleteTurnsBeyond(curr->next);
 			destroyTurn(curr);
 		}
+}
+
+/**
+ * Adds new turn as the next of the current turn (has the same board)
+ */
+void addTurn(Turn *curr) {
+	Turn* new = createTurn();
+	deleteTurnsBeyond(curr->next);
+	new->prev = curr;
+	curr->next = new;
+	new->board = cloneBoard(curr->board);
 }

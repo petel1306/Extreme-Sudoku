@@ -19,4 +19,6 @@ void destroyTurn(Turn *turn);
 
 Turn* getHead(Turn* curr);
 
-void deleteTurnsAhead(Turn* curr);
+void deleteTurnsBeyond(Turn* curr);
+
+void addTurn(Turn* curr);

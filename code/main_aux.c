@@ -4,5 +4,4 @@
  */
 
 #include "main_aux.h"
-
-typedef int make_iso_compilers_happye;
+#include <stdio.h>

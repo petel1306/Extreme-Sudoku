@@ -9,7 +9,7 @@
  */
 typedef enum {FILE_NONE, FILE_NOT_EXIST, FILE_INCORRECT_FORMAT, FILE_INCORRECT_RANGE, FILE_ERRONEOUS_FIXED_CELLS} FileError;
 
-FileError loadFileToBoard(char *path, Board *board, int solveMode);
+FileError loadFileToBoard(char *path, Board **boardPointer, int isSolve);
 
 
 void saveBoardToFile(char *path, Board *board, int isEdit);
