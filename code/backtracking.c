@@ -3,6 +3,19 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+
+void indexToCords(int index, int N, int* x, int* y){
+    *x = index / N;
+    *y = index - *x * N;
+}
+
+call* returnCall(call* call){
+    call* prev = call->prev;
+    destroyBoard(call->board);
+    free(call);
+    rerurn prev;
+}
+
 int numberOfSolutions(Board* board){
     int N = board.n * board.m;
     int* x, y;
@@ -30,7 +43,7 @@ int numberOfSolutions(Board* board){
             if(index == last){
                 /* last cell is fixed - board is solved */
                 counter++;
-                stack = stack->prev;
+                stack = returnCall(stack);
             }
             else{
                 /* skipes fixed cell */
@@ -40,7 +53,7 @@ int numberOfSolutions(Board* board){
         else{
             if(cell->value == N){
                 /* backtracking */
-                stack = stack->prev;
+                stack = returnCall(stack);
             }
             else{
                 /* increament cell and check for errors */
@@ -50,7 +63,7 @@ int numberOfSolutions(Board* board){
                     if(index == last){
                         /* last cell is correct - got a solution */
                         counter++;
-                        stack = stack->prev;
+                        stack = returnCall(stack);
                     }
                     else{
                         /* cell is correct - recursive call to next cell */
@@ -64,9 +77,4 @@ int numberOfSolutions(Board* board){
             }
         }
     }
-}
-
-void indexToCords(int index, int N, int* x, int* y){
-    *x = index / N;
-    *y = index - *x * N;
 }
