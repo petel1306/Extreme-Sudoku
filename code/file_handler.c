@@ -21,7 +21,7 @@ FileError loadFileToBoard(char *path, Board **boardPointer, int isSolve) {
 
 	FILE *file = fopen(path, "r");
 	if (file == NULL ){
-		error = FILE_NOT_EXIST;
+		error = FILE_CANT_OPEN;
 		goto exit;
 	}
 
@@ -69,8 +69,9 @@ FileError loadFileToBoard(char *path, Board **boardPointer, int isSolve) {
  * @param solveMode = true --> function called from solveBoardFile;
  * @pre path is existing file
  * @post file in "path" contains the board
+ * @returns 0 if succeeded, otherwise: 1
  */
-void saveBoardToFile(char *path, Board *board, int isEdit) {
+SaveError saveBoardToFile(char *path, Board *board, int isEdit) {
 	int N;
 	int i;
 	int j;
@@ -78,6 +79,10 @@ void saveBoardToFile(char *path, Board *board, int isEdit) {
 	CellState state;
 
 	FILE *file = fopen(path, "w");
+	if (file == NULL ){
+		return SAVE_CANT_OPEN;
+	}
+
 	fprintf(file , "%d %d\n", board->m, board->n); /* Writing the board's sizes */
 	N = board->m * board->n;
 	for (i=0; i<N; ++i) { /* Scanning board cells and writing their values to the file */
@@ -100,5 +105,7 @@ void saveBoardToFile(char *path, Board *board, int isEdit) {
 			fprintf(file, "%d\n", val);
 		}
 	}
+
 	fclose(file);
+	return SAVE_NONE;
 }

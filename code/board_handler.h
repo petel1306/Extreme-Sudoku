@@ -35,9 +35,7 @@ void destroyBoard(Board *board);
 
 void printBoard(Board *board, int printErroneous);
 
-void unmarkValidNeighbors(Board *board, int rowInd, int colInd, int val);
-
-void markErroneousNeighbors(Board *board, int rowInd, int colInd);
+int setCell(Board *board, int rowInd, int ColInd, int val);
 
 void markErroneousBoard(Board *board);
 

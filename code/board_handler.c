@@ -201,9 +201,6 @@ void updateErroneous(Cell **cells, int N) {
 			if (isSecondAppear[val]) {
 				cells[idx]->state = ERRONEOUS;
 			}
-			else {
-				cells[idx] = REG;
-			}
 		}
 	}
 	free(firstAppear);
@@ -359,8 +356,8 @@ int hasSingleOption(Board *board, int rowInd, int colInd) {
 	/* Allocates arrays */
 	seenValues = (int*) malloc((N+1) * sizeof(int));
 	for (val=0; val<=N; val++) {
-			seenValues[val] = 0;
-		}
+		seenValues[val] = 0;
+	}
 	cells = (Cell**) malloc(N * sizeof(Cell*));
 
 	/* Updating "seenValues" according to the cell's neighbors */
@@ -386,4 +383,26 @@ int hasSingleOption(Board *board, int rowInd, int colInd) {
 		return suspectedValue;
 	}
 	return 0;
+}
+
+
+/**
+ * Sets a value to a cell by its indexes.
+ * @pre "rowInd", "ColInd" are valid indexes && "val" is a valid value && "cell" is not fixed
+ * @returns the value of the cell before the setting
+ * Complexity: O(N)
+ *
+ */
+int setCell(Board *board, int rowInd, int colInd, int val) {
+	int preVal = board->cells[rowInd][colInd].value;
+	board->cells[rowInd][colInd].value = val;
+	if (preVal != 0) {
+		board->nonEmptyAmount--;
+		unmarkValidNeighbors(board, rowInd, colInd, preVal);
+	}
+	if (val != 0) {
+		board->nonEmptyAmount++;
+		markErroneousNeighbors(board, rowInd, colInd);
+	}
+	return preVal;
 }

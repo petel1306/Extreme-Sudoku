@@ -183,8 +183,7 @@ SaveError save(Game *game, char *path) {
 		}
 		 */
 	}
-	saveBoardToFile(path, board, isEdit);
-	return SAVE_NONE;
+	return saveBoardToFile(path, board, isEdit);
 }
 
 /**
@@ -210,7 +209,6 @@ SetError set(Game *game, int x, int y, int val) {
 	int rowInd = y-1;
 	int colInd = x-1;
 	Board *preBoard = game->turn->board;
-	Board *newBoard;
 	int N = preBoard->m * preBoard->n;
 	int preVal;
 
@@ -231,16 +229,9 @@ SetError set(Game *game, int x, int y, int val) {
 		return SET_FIXED_CELL;
 	}
 
-	preVal = preBoard->cells[rowInd][colInd].value;
-
 	/* Updates the move */
 	newMove(game);
-	newBoard = game->turn->board;
-	newBoard->cells[rowInd][colInd].value = val;
-	if (preVal != 0) { newBoard->nonEmptyAmount--; }
-	if (val != 0) { newBoard->nonEmptyAmount++; }
-	unmarkValidNeighbors(newBoard, rowInd, colInd, preVal);
-	markErroneousNeighbors(newBoard, rowInd, colInd);
+	preVal = setCell(game->turn->board, rowInd, colInd, val);
 	sprintf(game->turn->change, "set cell X=%d, Y=%d from %d to %d\n", x, y, preVal, val);
 	return SET_NONE;
 }
@@ -273,8 +264,7 @@ AutofillError autofill(Game *game) {
 		for (j=0; j<N; ++j) {
 			fillValue = hasSingleOption(preBoard, i, j);
 			if(fillValue) { /* There is a single value */
-				newBoard->cells[i][j].value = fillValue;
-				newBoard->nonEmptyAmount++;
+				setCell(newBoard, i, j, fillValue);
 				sprintf(addition , "	<X=%d, Y=%d> : %d\n", j+1, i+1, fillValue);
 				strcat(change, addition);
 			}
@@ -360,6 +350,8 @@ GenerateError generate(Game *game, int x, int y) {
 	 * 		return GEN_NOT_SUCCEEDED;
 	 * }
 	 */
+
+	game->turn->board->nonEmptyAmount = y; /* Verifies "nonEmptyAmount" is updated */
 
 	return GEN_NONE;
 }
