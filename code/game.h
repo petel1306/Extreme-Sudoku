@@ -99,8 +99,9 @@ UndoRedoError undo(Game *game, char *output);
 UndoRedoError redo(Game *game, char *output);
 
 
-typedef enum {SAVE_NONE, SAVE_NOT_AVAILABLE, SAVE_ERRONEOUS, SAVE_WITHOUT_SOLUTION} SaveError;
-
+/**
+ * Note: enum of save errors appears in "file_handler.h"
+ */
 SaveError save(Game *game, char *path);
 
 
