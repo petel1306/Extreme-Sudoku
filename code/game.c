@@ -1,4 +1,5 @@
 #include "game.h"
+#include "backtracking.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -432,6 +433,10 @@ HintError guess_hint(Game *game, int x, int y, int **hintValList) {
 
 
 NumSolutionsError num_solutions(Game *game, int *sol_amount) {
+	Board *board = game->turn->board;
+	int N = board->n * board->m;
+	int i, j;
+	int *filled = (int*) calloc(N*N, sizeof(int));
 	/* Validates conditions */
 	if (game->mode == INIT) {
 		return NUM_NOT_AVAILABLE;
@@ -439,15 +444,15 @@ NumSolutionsError num_solutions(Game *game, int *sol_amount) {
 	if (isErrBoard(game->turn->board)) {
 		return NUM_ERRONEOUS;
 	}
-
-	/*
-	 * <Exhaustive Backtracking functionality>
-	 * input: game->turn->board
-	 * *sol_amount = output
-	 */
-
-	/* Default implementation for the compiler */
-	printf("%d\n", *sol_amount);
-
+	board = cloneBoard(board);
+	for(i=0; i<N; i++){
+		for(j=0; j<N; j++){
+			if (board->cells[i][j].value>0){
+				filled[i*N+j] = 1;
+			}
+		}
+	}
+	*sol_amount = numberOfSolutions(board, filled);
+	free(filled);
 	return NUM_NONE;
 }

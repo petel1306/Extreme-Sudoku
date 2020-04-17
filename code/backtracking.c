@@ -4,61 +4,57 @@
 #include <stdio.h>
 
 
-void indexToCords(int index, int N, int* x, int* y){
-    *x = index / N;
-    *y = index - *x * N;
-}
-
-call* returnCall(call* call){
-    call* prev = call->prev;
+Call* returnCall(Call* call){
+    Call* previousCall;
+    previousCall = call->prev;
     destroyBoard(call->board);
     free(call);
-    rerurn prev;
+    return previousCall;
 }
 
-int numberOfSolutions(Board* board){
-    int N = board.n * board.m;
-    int* x, y;
+int numberOfSolutions(Board* board, int* filled){
+    int N = board->n * board->m;
+    int x, y, val;
     int index, counter = 0; 
-    Cell* cell;
     const int last = N * N - 1;
     
     /* first call */
-    call * stack, next = NULL;
-    stack = (call*) malloc(sizeof(call));
+    Call *stack, *next = NULL;
+    stack = (Call*) malloc(sizeof(Call));
     stack->board = board;
     stack->index = 0;
     stack->prev = NULL;
 
     /*recursion*/
     while(stack != NULL){
-        
         /*unpack variables*/
         index = stack->index;
         board = stack->board;
         
-        indexToCords(index, N, x, y);
-        cell = &(board->cells[x*][y*]);
-        if(cell->state == FIXED){
+        /* get cords */
+        x = index / N;
+        y = index - x * N;
+        val = board->cells[x][y].value;
+        
+        if(filled[x * N + y]){
             if(index == last){
-                /* last cell is fixed - board is solved */
+                /* last cell is filled - board is solved */
                 counter++;
                 stack = returnCall(stack);
             }
             else{
-                /* skipes fixed cell */
+                /* skipes filled cell */
                 stack->index++;
             }
         }
         else{
-            if(cell->value == N){
+            if(val == N){
                 /* backtracking */
                 stack = returnCall(stack);
             }
             else{
                 /* increament cell and check for errors */
-                cell->value++;
-                markErroneousBoard(board);
+                setCell(board, x, y, val+1);
                 if(!isErrBoard(board)){
                     if(index == last){
                         /* last cell is correct - got a solution */
@@ -67,7 +63,7 @@ int numberOfSolutions(Board* board){
                     }
                     else{
                         /* cell is correct - recursive call to next cell */
-                        next = (call*) malloc(sizeof(call));
+                        next = (Call*) malloc(sizeof(Call));
                         next->board = cloneBoard(board);
                         next->index = index +1;
                         next->prev = stack;
@@ -77,4 +73,5 @@ int numberOfSolutions(Board* board){
             }
         }
     }
+    return counter;
 }

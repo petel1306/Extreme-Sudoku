@@ -4,4 +4,6 @@ typedef struct stack_node{
     Board* board;
     int index;
     struct stack_node* prev;
-} call;
+} Call;
+
+int numberOfSolutions(Board* board, int* filled);
