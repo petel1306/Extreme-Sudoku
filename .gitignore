@@ -1,3 +1,4 @@
 *.o
 sudoku-console
 *.exe
+tests/*
