@@ -43,5 +43,12 @@ int isErrBoard(Board *board);
 
 int hasSingleOption(Board *board, int rowInd, int colInd);
 
+int getBlockInd(Board *board, int i, int j);
+
+void getBlockCells(Board *board, int blockInd, Cell** cells);
+
+void getColumnCells(Board *board, int colInd, Cell** cells);
+
+void getRowCells(Board *board, int rowInd, Cell** cells);
 
 #endif
