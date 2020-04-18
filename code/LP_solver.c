@@ -14,8 +14,8 @@
 #include "board_handler.h"
 #include "game.h"
 
-/* creates 2D array ant initialize all to 1's */
-int **create2D(int dim)
+/* creates 2D array ant initialize */
+int **create2D(int dim, int defaultValue)
 {
 	int i, j;
 	int **mat = (int **)malloc(sizeof(int *) * dim);
@@ -24,7 +24,7 @@ int **create2D(int dim)
 		mat[i] = (int *)malloc(sizeof(int) * dim);
 		for (j = 0; j < dim; j++)
 		{
-			mat[i][j] = 1;
+			mat[i][j] = defaultValue;
 		}
 	}
 	return mat;
@@ -51,7 +51,7 @@ void calculateCellsOptions(Board *board, Cell **cells, int *cellsOptions, int n)
 	}
 }
 
-void calculateOptions(Board *board, int **numberOfOptions, int ***options)
+void calculateOptions(Board *board, int ***options)
 {
 	int N = board->n * board->m;
 	int **rowsOptions, **columnsOptions, **blocksOptions;
@@ -59,7 +59,7 @@ void calculateOptions(Board *board, int **numberOfOptions, int ***options)
 	Cell **cells = (Cell **)malloc(N * sizeof(Cell **));
 
 	/* calculate lines */
-	rowsOptions = create2D(N);
+	rowsOptions = create2D(N, 1);
 	for (i = 0; i < N; i++)
 	{
 		cells = getRowCells(board, i, cells);
@@ -67,7 +67,7 @@ void calculateOptions(Board *board, int **numberOfOptions, int ***options)
 	}
 
 	/* calculate columns */
-	columnsOptions = create2D(N);
+	columnsOptions = create2D(N, 1);
 	for (i = 0; i < N; i++)
 	{
 		cells = getColumnCells(board, i, cells);
@@ -75,7 +75,7 @@ void calculateOptions(Board *board, int **numberOfOptions, int ***options)
 	}
 
 	/* calculate blocks */
-	blocksOptions = create2D(N);
+	blocksOptions = create2D(N, 1);
 	for (i = 0; i < N; i++)
 	{
 		cells = getBlockCells(board, i, cells);
@@ -92,7 +92,6 @@ void calculateOptions(Board *board, int **numberOfOptions, int ***options)
 				if (rowsOptions[i][v] && columnsOptions[j][v] && blocksOptions[blockInd][v])
 				{
 					options[i][j][v] = 1;
-					numberOfOptions[i][j]++;
 				}
 				else
 				{
@@ -109,21 +108,52 @@ void calculateOptions(Board *board, int **numberOfOptions, int ***options)
 	destroyBoard(rowsOptions);
 }
 
-int main(void)
+int mapIndex( int ***options, int n){
+	int i, j, k;
+	int counter = 0;
+	for(i=0; i<n; i++){
+		for(j=0; j<n; j++){
+			for(k=0; k<n; k++){
+				if(options[i][j][k]){
+					options[i][j][k] = counter++;
+				}
+			}
+		}
+	}
+	return counter;
+}
+
+int solve(Board *board)
 {
+	int N = board->m * board->n;
+	int i,j,k;
+	int **numberOfOptions, ***indexMapping;
+	int numberOfVariables;
 	GRBenv *env = NULL;
 	GRBmodel *model = NULL;
 	int error = 0;
-	double sol[3];
-	int ind[3];
-	double val[3];
-	double obj[3];
-	char vtype[3];
+	double *sol, *val, *obj;
+	int *ind;
+	char *vtype;
 	int optimstatus;
 	double objval;
 
+	indexMapping = (int***) malloc(N * sizeof(int**));
+	for(i=0; i<N; i++){
+		indexMapping[i] = create2D(N, 0);
+	};
+
+	calculateOptions(board, indexMapping);
+	numberOfVariables = mapIndex(indexMapping, N);
+	
+	sol = (double*) malloc(numberOfVariables * sizeof(double));
+	obj = (double*) malloc(numberOfVariables * sizeof(double));
+	val = (double*) malloc(N * sizeof(double));
+	ind = (int*) malloc(N * sizeof(int));
+	vtype = (char*) malloc(numberOfVariables * sizeof(char));
+
 	/* Create environment - log file is mip1.log */
-	error = GRBloadenv(&env, "mip1.log");
+	error = GRBloadenv(&env, "solve.log");
 	if (error)
 	{
 		printf("ERROR %d GRBloadenv(): %s\n", error, GRBgeterrormsg(env));
@@ -283,6 +313,16 @@ int main(void)
 	/* IMPORTANT !!! - Free model and environment */
 	GRBfreemodel(model);
 	GRBfreeenv(env);
+
+	free(vtype);
+	free(ind);
+	free(val);
+	free(obj);
+	free(sol);
+	for(i=0; i<N; i++){
+		free(indexMapping[i]);
+	}
+	free(indexMapping);
 
 	return 0;
 }
