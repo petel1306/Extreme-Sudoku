@@ -328,11 +328,57 @@ GuessError guess(Game *game, float x) {
 	return GUESS_NONE;
 }
 
+int fillValues(Board *board, int x, int N){
+	int n = 0;
+	int i, j, v, c;
+	while(n < x){
+		c = 0;
+		i = rand() % N;
+		j = rand() % N;
+		if(!board->cells[i][j].value){
+			for(v=0; v<N; v++){
+				setCell(board, i, j, v);
+				if(board->cells[i][j].state != ERRONEOUS){
+					c = 1;
+					break;
+				}
+			}
+			if(!c){
+				return 0;
+			}
+			
+		}
+	}
+	return 1;
+}
+
+void chooseCells(Board *board, int y, int N){
+	int i, j, n;
+	int **mark = create2D(N, 0);
+	while(n < y){
+		i = rand() % N;
+		j = rand() % N;
+		if(!mark[i][j]){
+			mark[i][j] = 1;
+			n++;
+		}
+	}
+	for(i=0; i<N; i++){
+		for(j=0; j<N; j++){
+			board->cells[i][j].state = REG;
+			if(!mark[i][j]){
+				board->cells[i][j].value = 0;
+			}
+		}
+	}
+	destroy2D(mark, N);
+}
 
 GenerateError generate(Game *game, int x, int y) {
 	int N = game->turn->board->m * game->turn->board->n;
 	int N2 = N*N;
-
+	int try;
+	Board *board;
 	/* Validates conditions */
 	if (game->mode != EDIT) {
 		return GEN_NOT_AVAILABLE;
@@ -344,23 +390,32 @@ GenerateError generate(Game *game, int x, int y) {
 		return GEN_INVALID_Y;
 	}
 
-	/* Updates the move */
-	newMove(game);
-	sprintf(game->turn->change, "generate board with %d non-empty cells:\n", y);
+	for(try=0; try<1000; try++){
+		board = cloneBoard(board);
+		if(fillValues(board, x, N)){
+			switch (solveILP(board))
+			{
+			case 0:
+				chooseCells(board, y, N);
+				/* Updates the move */
+				newMove(game);
+				sprintf(game->turn->change, "generate board with %d non-empty cells:\n", y);
+				destroyBoard(game->turn->board);
+				game->turn->board = board;
+				game->turn->board->nonEmptyAmount = y; /* Verifies "nonEmptyAmount" is updated */
+				return GEN_NONE;
+			
+			case 1:
+				destroyBoard(board);
+				continue;
 
-	/*
-	 * <ILP solver functionality>
-	 * input: game->turn->board, x, y
-	 *
-	 * if (<not succeeded>) {
-	 * 		cancelMove(game);
-	 * 		return GEN_NOT_SUCCEEDED;
-	 * }
-	 */
-
-	game->turn->board->nonEmptyAmount = y; /* Verifies "nonEmptyAmount" is updated */
-
-	return GEN_NONE;
+			default:
+				destroyBoard(board);
+				return GEN_GURONI_ERR;
+			}
+		}
+	}
+	return GEN_NOT_SUCCEEDED;
 }
 
 

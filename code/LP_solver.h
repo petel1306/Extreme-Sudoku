@@ -4,3 +4,7 @@
 #define GUROBI_FAILURE -1
 
 int solveILP(Board *board);
+
+int **create2D(int dim, int defaultValue);
+
+void destroy2D(int **mat, int dim);

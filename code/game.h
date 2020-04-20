@@ -79,7 +79,7 @@ typedef enum {GUESS_NONE, GUESS_NOT_AVAILABLE, GUESS_ERRONEOUS} GuessError;
 GuessError guess(Game *game, float x);
 
 
-typedef enum {GEN_NONE, GEN_NOT_AVAILABLE,  GEN_INVALID_X, GEN_INVALID_Y, GEN_NOT_SUCCEEDED} GenerateError;
+typedef enum {GEN_NONE, GEN_NOT_AVAILABLE,  GEN_INVALID_X, GEN_INVALID_Y, GEN_NOT_SUCCEEDED, GEN_GURONI_ERR} GenerateError;
 
 GenerateError generate(Game *game, int x, int y);
 
