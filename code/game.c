@@ -394,21 +394,21 @@ HintError hintValidate(Game *game, int x, int y) { /* Validates hint, guess_hint
 
 HintError hint(Game *game, int x, int y, int *hintVal) {
 	HintError error = hintValidate(game, x, y);
+	Board *board;
 	if (error != HINT_NONE) {
 		return error;
 	}
-
-	/*
-	 * <ILP solver functionality>
-	 * input: game->turn->board, x, y
-	 * *hintVal = output
-	 *
-	 * if (<the board is unsolvabled>) {
-	 * 		return HINT_UNSOLVABLE;
-	 * }
-	 */
-
-	/* Default implementation for the compiler */
+	board = cloneBoard(game->turn->board);
+	switch (solveILP(board))
+	{
+	case 0:
+		*hintVal = board->cells[x][y].value;
+		break;
+	case 1:
+		return HINT_UNSOLVABLE;
+	default:
+		return HINT_GUROBI_ERR;
+	}
 	printf("%d\n", *hintVal);
 
 	return HINT_NONE;

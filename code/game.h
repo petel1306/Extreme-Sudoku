@@ -105,7 +105,7 @@ UndoRedoError redo(Game *game, char *output);
 SaveError save(Game *game, char *path);
 
 
-typedef enum {HINT_NONE, HINT_NOT_AVAILABLE, HINT_INVALID_X, HINT_INVALID_Y, HINT_ERRONEOUS, HINT_FIXED_CELL, HINT_NON_EMPTY, HINT_UNSOLVABLE} HintError;
+typedef enum {HINT_NONE, HINT_NOT_AVAILABLE, HINT_INVALID_X, HINT_INVALID_Y, HINT_ERRONEOUS, HINT_FIXED_CELL, HINT_NON_EMPTY, HINT_UNSOLVABLE, HINT_GUROBI_ERR} HintError;
 
 /**
  * @post HINT_NONE --> *hintVal = the value of cell <X,Y> found by the *ILP* solution
