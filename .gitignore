@@ -3,3 +3,5 @@ sudoku-console
 *.exe
 tests/*
 gurobi_c.h
+.vscode/*
+soduku

@@ -299,7 +299,7 @@ ValidateError valdiate(Game *game, unsigned int *solvable) {
 		return VALID_GUROBI_ERR;
 	}
 	printf("%d\n", *solvable);
-
+	destroyBoard(board);
 	return VALID_NONE;
 }
 

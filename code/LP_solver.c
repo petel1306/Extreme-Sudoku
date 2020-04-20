@@ -31,7 +31,7 @@ void destroy2D(int **mat, int dim)
 	free(mat);
 }
 
-void calculateCellsOptions(Board *board, Cell **cells, int *cellsOptions, int n)
+void calculateCellsOptions(Cell **cells, int *cellsOptions, int n)
 {
 	int i, v;
 	for (i = 0; i < n; i++)
@@ -55,7 +55,7 @@ int calculateOptions(Board *board, int ***options, int **numberOfOptions)
 	for (i = 0; i < N; i++)
 	{
 		getRowCells(board, i, cells);
-		calculateCellsOptions(board, cells, rowsOptions[i], N);
+		calculateCellsOptions(cells, rowsOptions[i], N);
 	}
 
 	/* calculate columns */
@@ -63,7 +63,7 @@ int calculateOptions(Board *board, int ***options, int **numberOfOptions)
 	for (i = 0; i < N; i++)
 	{
 		getColumnCells(board, i, cells);
-		calculateCellsOptions(board, cells, columnsOptions[i], N);
+		calculateCellsOptions(cells, columnsOptions[i], N);
 	}
 
 	/* calculate blocks */
@@ -71,7 +71,7 @@ int calculateOptions(Board *board, int ***options, int **numberOfOptions)
 	for (i = 0; i < N; i++)
 	{
 		getBlockCells(board, i, cells);
-		calculateCellsOptions(board, cells, rowsOptions[i], N);
+		calculateCellsOptions(cells, rowsOptions[i], N);
 	}
 
 	for (i = 0; i < N; i++)
@@ -80,7 +80,7 @@ int calculateOptions(Board *board, int ***options, int **numberOfOptions)
 		{
 			/* only for blank cells */
 			if(!board->cells[i][j].value){
-				for (v = 0, v < N; v++;)
+				for (v = 0; v < N; v++)
 				{
 					blockInd = getBlockInd(board, i, j);
 					if (rowsOptions[i][v] && columnsOptions[j][v] && blocksOptions[blockInd][v])
@@ -94,9 +94,9 @@ int calculateOptions(Board *board, int ***options, int **numberOfOptions)
 	}
 
 	free(cells);
-	destroyBoard(blocksOptions);
-	destroyBoard(columnsOptions);
-	destroyBoard(rowsOptions);
+	destroy2D(blocksOptions, N);
+	destroy2D(columnsOptions, N);
+	destroy2D(rowsOptions, N);
 	return counter;
 }
 
@@ -122,7 +122,8 @@ int setSingalValueConstraints(GRBmodel *model, GRBenv *env, int *ind, double *va
 	for(i=0; i<N; i++){
 		for(j=0; j<N; j++){
 			n = numberOfOptions[i][j];
-			k, v = 0;
+			k = 0;
+			v = 0;
 			while(v<n){
 				if(indexMapping[i][j][k]){
 					ind[v] = indexMapping[i][j][k] - 1;
@@ -177,6 +178,7 @@ int limitValueInRows(GRBmodel *model, GRBenv *env, int *ind, double *val, int **
 			return GUROBI_FAILURE;
 		}
 	}
+	return 0;
 }
 
 int limitValueInColumns(GRBmodel *model, GRBenv *env, int *ind, double *val, int ***indexMapping, int N){
@@ -188,6 +190,7 @@ int limitValueInColumns(GRBmodel *model, GRBenv *env, int *ind, double *val, int
 			return GUROBI_FAILURE;
 		}
 	}
+	return 0;
 }
 
 int limitValueInBlocks(GRBmodel *model, GRBenv *env, int *ind, double *val, int ***indexMapping, int m, int n){
@@ -202,6 +205,7 @@ int limitValueInBlocks(GRBmodel *model, GRBenv *env, int *ind, double *val, int 
 			}
 		}
 	}
+	return 0;
 }
 
 int setAreaColissionConstraints(GRBmodel *model, GRBenv *env, int *ind, double *val, int ***indexMapping, int m, int n){
@@ -344,12 +348,12 @@ int solveILP(Board *board)
 	/* solution found */
 	if (optimstatus == GRB_OPTIMAL)
 	{
-		for(i=0; i++; i<N){
-			for(j=0; j++; j<N){
+		for(i=0; i<N; i++){
+			for(j=0; j<N; j++){
 				if(!numberOfOptions[i][j]){
 					break;
 				}
-				for(k=0; k++; k<N){
+				for(k=0; k<N; k++){
 					if(indexMapping[i][j][k] && ind[indexMapping[i][j][k] - 1]){
 						setCell(board, i, j, k);
 						break;
