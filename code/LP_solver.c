@@ -71,7 +71,7 @@ int calculateOptions(Board *board, int ***options, int **numberOfOptions)
 	for (i = 0; i < N; i++)
 	{
 		getBlockCells(board, i, cells);
-		calculateCellsOptions(cells, rowsOptions[i], N);
+		calculateCellsOptions(cells, blocksOptions[i], N);
 	}
 
 	for (i = 0; i < N; i++)
@@ -134,7 +134,7 @@ int setSingalValueConstraints(GRBmodel *model, GRBenv *env, int *ind, double *va
 			}
 			/* doesnt set constraints for non-blank cells */
 			if(n > 0){
-				error = GRBaddconstr(model, n, ind, val, GRB_LESS_EQUAL, 1, NULL);
+				error = GRBaddconstr(model, n, ind, val, GRB_EQUAL, 1.0, NULL);
 				if (error)
 				{
 					printf("ERROR %d at GRBaddconstr() for cell (%d, %d): %s\n", error, i, j, GRBgeterrormsg(env));
@@ -160,7 +160,7 @@ int limitValueInArea(GRBmodel *model, int i_s, int i_f, int j_s, int j_f, int *i
 			}
 		}
 		if(n > 0){
-				error = GRBaddconstr(model, n, ind, val, GRB_LESS_EQUAL, 1, NULL);
+				error = GRBaddconstr(model, n, ind, val, GRB_EQUAL, 1.0, NULL);
 				if (error){
 					return error;
 				}
@@ -211,9 +211,9 @@ int limitValueInBlocks(GRBmodel *model, GRBenv *env, int *ind, double *val, int 
 int setAreaColissionConstraints(GRBmodel *model, GRBenv *env, int *ind, double *val, int ***indexMapping, int m, int n){
 	int N = n * m;
 	return (
-		limitValueInBlocks(model, env, ind, val, indexMapping, m, n)
-		|| limitValueInColumns(model, env, ind, val, indexMapping, N)
+		limitValueInColumns(model, env, ind, val, indexMapping, N)
 		|| limitValueInRows(model, env, ind, val, indexMapping, N)
+		||limitValueInBlocks(model, env, ind, val, indexMapping, m, n)
 	);
 }
 
@@ -293,16 +293,16 @@ int solveILP(Board *board)
 	}
 
 	/* cell constraint: any cell is allowed to have a single value 
-	Xij1 + Xij2 + ... + XijN <= 1 */
+	Xij1 + Xij2 + ... + XijN = 1 */
 
 	if(setSingalValueConstraints(model, env, ind, val, numberOfOptions, indexMapping, N)){
 		return GUROBI_FAILURE;
 	}
 
-	/* area constraint: for any value k<=N we only one is allowed in:
-	for every row i: Xi1k + Xi2k + ... + XiNk <= 1 
-	for every column j: X1jk + X2jk + ... + XNjk <= 1
-	for every block b: SUM{Xck for any c in b} <= 1 */
+	/* area constraint: for any value k<=N only one is allowed in:
+	for every row i: Xi1k + Xi2k + ... + XiNk = 1 
+	for every column j: X1jk + X2jk + ... + XNjk = 1
+	for every block b: SUM{Xck for any c in b} = 1 */
 
 	if(setAreaColissionConstraints(model, env, ind, val, indexMapping, board->m, board->n)){
 		return GUROBI_FAILURE;
@@ -329,8 +329,7 @@ int solveILP(Board *board)
 	error = GRBgetdblattr(model, GRB_DBL_ATTR_OBJVAL, &objval);
 	if (error)
 	{
-		printf("ERROR %d GRBgettdblattr(): %s\n", error, GRBgeterrormsg(env));
-		return GUROBI_FAILURE;
+		return NON_SOLUTION;
 	}
 
 	/* get the solution - the assignment to each variable */
@@ -345,17 +344,19 @@ int solveILP(Board *board)
 	/* print results */
 	printf("\nOptimization complete\n");
 
+	error = 0;
+
 	/* solution found */
 	if (optimstatus == GRB_OPTIMAL)
 	{
 		for(i=0; i<N; i++){
 			for(j=0; j<N; j++){
 				if(!numberOfOptions[i][j]){
-					break;
+					continue;
 				}
 				for(k=0; k<N; k++){
-					if(indexMapping[i][j][k] && ind[indexMapping[i][j][k] - 1]){
-						setCell(board, i, j, k);
+					if(indexMapping[i][j][k] && sol[indexMapping[i][j][k] - 1]){
+						setCell(board, i, j, k+1);
 						break;
 					}
 				}
@@ -365,12 +366,12 @@ int solveILP(Board *board)
 	/* no solution found */
 	else if (optimstatus == GRB_INF_OR_UNBD)
 	{
-		return NON_SOLUTION;
+		error = NON_SOLUTION;
 	}
 	/* error or calculation stopped */
 	else
 	{
-		return OPT_STOP_EARLY;
+		error = OPT_STOP_EARLY;
 	}
 
 	/* IMPORTANT !!! - Free model and environment */
@@ -388,5 +389,5 @@ int solveILP(Board *board)
 	free(indexMapping);
 	free(numberOfOptions);
 
-	return 0;
+	return error;
 }
