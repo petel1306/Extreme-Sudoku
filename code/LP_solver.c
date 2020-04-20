@@ -223,7 +223,7 @@ int setAreaColissionConstraints(GRBmodel *model, GRBenv *env, int *ind, double *
 }
 
 
-int solveLP(Board *board)
+int solveILP(Board *board)
 {
 	int N = board->m * board->n;
 	int i,j,k;
@@ -321,14 +321,6 @@ int solveLP(Board *board)
 		return -1;
 	}
 
-	/* Write model to 'mip1.lp' - this is not necessary but very helpful */
-	error = GRBwrite(model, "mip1.lp");
-	if (error)
-	{
-		printf("ERROR %d GRBwrite(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
-	}
-
 	/* Get solution information */
 
 	error = GRBgetintattr(model, GRB_INT_ATTR_STATUS, &optimstatus);
@@ -348,7 +340,7 @@ int solveLP(Board *board)
 
 	/* get the solution - the assignment to each variable */
 	/* 3-- number of variables, the size of "sol" should match */
-	error = GRBgetdblattrarray(model, GRB_DBL_ATTR_X, 0, 3, sol);
+	error = GRBgetdblattrarray(model, GRB_DBL_ATTR_X, 0, numberOfVariables, sol);
 	if (error)
 	{
 		printf("ERROR %d GRBgetdblattrarray(): %s\n", error, GRBgeterrormsg(env));
@@ -361,8 +353,19 @@ int solveLP(Board *board)
 	/* solution found */
 	if (optimstatus == GRB_OPTIMAL)
 	{
-		printf("Optimal objective: %.4e\n", objval);
-		printf("  x=%.2f, y=%.2f, z=%.2f\n", sol[0], sol[1], sol[2]);
+		for(i=0; i++; i<N){
+			for(j=0; j++; j<N){
+				if(!numberOfOptions[i][j]){
+					break;
+				}
+				for(k=0; k++; k<N){
+					if(indexMapping[i][j][k] && ind[indexMapping[i][j][k] -1]){
+						setCell(board, i, j, k);
+						break;
+					}
+				}
+			}
+		}
 	}
 	/* no solution found */
 	else if (optimstatus == GRB_INF_OR_UNBD)
