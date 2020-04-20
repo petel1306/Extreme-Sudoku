@@ -43,7 +43,7 @@ void destroy2D(int **mat, int dim)
 void calculateCellsOptions(Board *board, Cell **cells, int *cellsOptions, int n)
 {
 	int i, v;
-	for (i = 0; i < n, i++)
+	for (i = 0; i < n; i++)
 	{
 		v = cells[i]->value;
 		if (v > 0)
@@ -51,7 +51,7 @@ void calculateCellsOptions(Board *board, Cell **cells, int *cellsOptions, int n)
 	}
 }
 
-void calculateOptions(Board *board, int ***options, int **numberOfOptions)
+int calculateOptions(Board *board, int ***options, int **numberOfOptions)
 {
 	int N = board->n * board->m;
 	int **rowsOptions, **columnsOptions, **blocksOptions;
@@ -63,7 +63,7 @@ void calculateOptions(Board *board, int ***options, int **numberOfOptions)
 	rowsOptions = create2D(N, 1);
 	for (i = 0; i < N; i++)
 	{
-		cells = getRowCells(board, i, cells);
+		getRowCells(board, i, cells);
 		calculateCellsOptions(board, cells, rowsOptions[i], N);
 	}
 
@@ -71,7 +71,7 @@ void calculateOptions(Board *board, int ***options, int **numberOfOptions)
 	columnsOptions = create2D(N, 1);
 	for (i = 0; i < N; i++)
 	{
-		cells = getColumnCells(board, i, cells);
+		getColumnCells(board, i, cells);
 		calculateCellsOptions(board, cells, columnsOptions[i], N);
 	}
 
@@ -79,17 +79,17 @@ void calculateOptions(Board *board, int ***options, int **numberOfOptions)
 	blocksOptions = create2D(N, 1);
 	for (i = 0; i < N; i++)
 	{
-		cells = getBlockCells(board, i, cells);
-		calculateCellsOptions(board, cells, linesOptions[i], N);
+		getBlockCells(board, i, cells);
+		calculateCellsOptions(board, cells, rowsOptions[i], N);
 	}
 
 	for (i = 0; i < N; i++)
 	{
-		for (j = 0, j < N; j++)
+		for (j = 0; j < N; j++)
 		{
 			/* only for blank cells */
 			if(!board->cells[i][j].value){
-				for (v = 0, v < N; v++)
+				for (v = 0, v < N; v++;)
 				{
 					blockInd = getBlockInd(board, i, j);
 					if (rowsOptions[i][v] && columnsOptions[j][v] && blocksOptions[blockInd][v])
@@ -109,7 +109,7 @@ void calculateOptions(Board *board, int ***options, int **numberOfOptions)
 	return counter;
 }
 
-int setTargetFunction(GRBmodel *model, double *obj, char *vtype, char type, int numberOfVariables){
+int setTargetFunction(GRBmodel *model, GRBenv *env, double *obj, char *vtype, char type, int numberOfVariables){
 	int i, error;
 	int mod = numberOfVariables * numberOfVariables;
 	for(i=0; i<numberOfVariables; i++){
@@ -126,7 +126,7 @@ int setTargetFunction(GRBmodel *model, double *obj, char *vtype, char type, int 
 	return 0;
 }
 
-int setSingalValueConstraints(GRBmodel *model, int *ind, double *val, int **numberOfOptions, int ***indexMapping, int N){
+int setSingalValueConstraints(GRBmodel *model, GRBenv *env, int *ind, double *val, int **numberOfOptions, int ***indexMapping, int N){
 	int i, j, k, v, n, error;
 	for(i=0; i<N; i++){
 		for(j=0; j<N; j++){
@@ -207,7 +207,7 @@ int solveLP(Board *board)
 	}
 
 	/* Add variables */
-	if(setTargetFunction(model, obj, vtype, GRB_BINARY, numberOfVariables)){
+	if(setTargetFunction(model, env, obj, vtype, GRB_BINARY, numberOfVariables)){
 		return -1;
 	}
 	
@@ -231,7 +231,7 @@ int solveLP(Board *board)
 	/* cell constraint: any cell is allowed to have a single value 
 	Xij1 + Xij2 + ... + XijN <= 1 */
 
-	if(setSingalValueConstraints(model, ind, val, numberOfOptions, indexMapping, N)){
+	if(setSingalValueConstraints(model, env, ind, val, numberOfOptions, indexMapping, N)){
 		return -1;
 	}
 
@@ -322,7 +322,7 @@ int solveLP(Board *board)
 	free(obj);
 	free(sol);
 	for(i=0; i<N; i++){
-		destroy2D(indexMapping[i]);
+		destroy2D(indexMapping[i], N);
 	}
 	free(indexMapping);
 	free(numberOfOptions);
