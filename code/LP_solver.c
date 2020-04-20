@@ -87,19 +87,17 @@ void calculateOptions(Board *board, int ***options, int **numberOfOptions)
 	{
 		for (j = 0, j < N; j++)
 		{
-			for (v = 0, v < N; v++)
-			{
-				blockInd = getBlockInd(board, i, j);
-				if (rowsOptions[i][v] && columnsOptions[j][v] && blocksOptions[blockInd][v])
+			/* only for blank cells */
+			if(!board->cells[i][j].value){
+				for (v = 0, v < N; v++)
 				{
-					options[i][j][v] = ++counter;
-					numberOfOptions[i][j]++;
+					blockInd = getBlockInd(board, i, j);
+					if (rowsOptions[i][v] && columnsOptions[j][v] && blocksOptions[blockInd][v])
+					{
+						options[i][j][v] = ++counter;
+						numberOfOptions[i][j]++;
+					}
 				}
-				else
-				{
-					options[i][j][v] = 0;
-				}
-				
 			}
 		}
 	}
@@ -109,6 +107,51 @@ void calculateOptions(Board *board, int ***options, int **numberOfOptions)
 	destroyBoard(columnsOptions);
 	destroyBoard(rowsOptions);
 	return counter;
+}
+
+int setTargetFunction(GRBmodel *model, double *obj, char *vtype, char type, int numberOfVariables){
+	int i, error;
+	int mod = numberOfVariables * numberOfVariables;
+	for(i=0; i<numberOfVariables; i++){
+		obj[i] = (rand() % mod) + 1;
+		vtype[i] = type;
+	}
+	/* add variables to model */
+	error = GRBaddvars(model, numberOfVariables, 0, NULL, NULL, NULL, obj, NULL, NULL, vtype, NULL);
+	if (error)
+	{
+		printf("ERROR %d GRBaddvars(): %s\n", error, GRBgeterrormsg(env));
+		return -1;
+	}
+	return 0;
+}
+
+int setSingalValueConstraints(GRBmodel *model, int *ind, double *val, int **numberOfOptions, int ***indexMapping, int N){
+	int i, j, k, v, n, error;
+	for(i=0; i<N; i++){
+		for(j=0; j<N; j++){
+			n = numberOfOptions[i][j];
+			k, v = 0;
+			while(v<n){
+				if(indexMapping[i][j][k]){
+					ind[v] = indexMapping[i][j][k] - 1;
+					val[v] = 1;
+					v++;
+				}
+				k++;
+			}
+			/* doesnt set constraints for non-blank cells */
+			if(n > 0){
+				error = GRBaddconstr(model, n, ind, val, GRB_LESS_EQUAL, 1, NULL);
+				if (error)
+				{
+					printf("ERROR %d at GRBaddconstr() for cell (%d, %d): %s\n", error, i, j, GRBgeterrormsg(env));
+					return -1;
+				}
+			}
+		}
+	}
+	return 0
 }
 
 int solveLP(Board *board)
@@ -156,7 +199,7 @@ int solveLP(Board *board)
 	}
 
 	/* Create an empty model named "mip1" */
-	error = GRBnewmodel(env, &model, "mip1", 0, NULL, NULL, NULL, NULL, NULL);
+	error = GRBnewmodel(env, &model, "solve1", 0, NULL, NULL, NULL, NULL, NULL);
 	if (error)
 	{
 		printf("ERROR %d GRBnewmodel(): %s\n", error, GRBgeterrormsg(env));
@@ -164,26 +207,10 @@ int solveLP(Board *board)
 	}
 
 	/* Add variables */
-
-	/* coefficients - for x,y,z (cells 0,1,2 in "obj") */
-	obj[0] = 1;
-	obj[1] = 3;
-	obj[2] = 2;
-
-	/* variable types - for x,y,z (cells 0,1,2 in "vtype") */
-	/* other options: GRB_INTEGER, GRB_CONTINUOUS */
-	vtype[0] = GRB_BINARY;
-	vtype[1] = GRB_BINARY;
-	vtype[2] = GRB_BINARY;
-
-	/* add variables to model */
-	error = GRBaddvars(model, 3, 0, NULL, NULL, NULL, obj, NULL, NULL, vtype, NULL);
-	if (error)
-	{
-		printf("ERROR %d GRBaddvars(): %s\n", error, GRBgeterrormsg(env));
+	if(setTargetFunction(model, obj, vtype, GRB_BINARY, numberOfVariables)){
 		return -1;
 	}
-
+	
 	/* Change objective sense to maximization */
 	error = GRBsetintattr(model, GRB_INT_ATTR_MODELSENSE, GRB_MAXIMIZE);
 	if (error)
@@ -201,23 +228,10 @@ int solveLP(Board *board)
 		return -1;
 	}
 
-	/* First constraint: x + 2 y + 3 z <= 5 */
+	/* cell constraint: any cell is allowed to have a single value 
+	Xij1 + Xij2 + ... + XijN <= 1 */
 
-	/* variables x,y,z (0,1,2) */
-	ind[0] = 0;
-	ind[1] = 1;
-	ind[2] = 2;
-	/* coefficients (according to variables in "ind") */
-	val[0] = 1;
-	val[1] = 2;
-	val[2] = 3;
-
-	/* add constraint to model - note size 3 + operator GRB_LESS_EQUAL */
-	/* -- equation value (5.0) + unique constraint name */
-	error = GRBaddconstr(model, 3, ind, val, GRB_LESS_EQUAL, 5, "c0");
-	if (error)
-	{
-		printf("ERROR %d 1st GRBaddconstr(): %s\n", error, GRBgeterrormsg(env));
+	if(setSingalValueConstraints(model, ind, val, numberOfOptions, indexMapping, N)){
 		return -1;
 	}
 
