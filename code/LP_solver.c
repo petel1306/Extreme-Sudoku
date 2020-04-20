@@ -51,11 +51,12 @@ void calculateCellsOptions(Board *board, Cell **cells, int *cellsOptions, int n)
 	}
 }
 
-void calculateOptions(Board *board, int ***options)
+void calculateOptions(Board *board, int ***options, int **numberOfOptions)
 {
 	int N = board->n * board->m;
 	int **rowsOptions, **columnsOptions, **blocksOptions;
 	int i, j, v, blockInd;
+	int counter = 0;
 	Cell **cells = (Cell **)malloc(N * sizeof(Cell **));
 
 	/* calculate lines */
@@ -91,7 +92,8 @@ void calculateOptions(Board *board, int ***options)
 				blockInd = getBlockInd(board, i, j);
 				if (rowsOptions[i][v] && columnsOptions[j][v] && blocksOptions[blockInd][v])
 				{
-					options[i][j][v] = 1;
+					options[i][j][v] = ++counter;
+					numberOfOptions[i][j]++;
 				}
 				else
 				{
@@ -106,24 +108,10 @@ void calculateOptions(Board *board, int ***options)
 	destroyBoard(blocksOptions);
 	destroyBoard(columnsOptions);
 	destroyBoard(rowsOptions);
-}
-
-int mapIndex( int ***options, int n){
-	int i, j, k;
-	int counter = 0;
-	for(i=0; i<n; i++){
-		for(j=0; j<n; j++){
-			for(k=0; k<n; k++){
-				if(options[i][j][k]){
-					options[i][j][k] = counter++;
-				}
-			}
-		}
-	}
 	return counter;
 }
 
-int solve(Board *board)
+int solveLP(Board *board)
 {
 	int N = board->m * board->n;
 	int i,j,k;
@@ -138,13 +126,13 @@ int solve(Board *board)
 	int optimstatus;
 	double objval;
 
+	numberOfOptions = create2D(N, 0);
 	indexMapping = (int***) malloc(N * sizeof(int**));
 	for(i=0; i<N; i++){
 		indexMapping[i] = create2D(N, 0);
 	};
 
-	calculateOptions(board, indexMapping);
-	numberOfVariables = mapIndex(indexMapping, N);
+	numberOfVariables = calculateOptions(board, indexMapping, numberOfOptions);
 	
 	sol = (double*) malloc(numberOfVariables * sizeof(double));
 	obj = (double*) malloc(numberOfVariables * sizeof(double));
@@ -320,9 +308,10 @@ int solve(Board *board)
 	free(obj);
 	free(sol);
 	for(i=0; i<N; i++){
-		free(indexMapping[i]);
+		destroy2D(indexMapping[i]);
 	}
 	free(indexMapping);
+	free(numberOfOptions);
 
 	return 0;
 }
