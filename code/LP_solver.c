@@ -151,8 +151,77 @@ int setSingalValueConstraints(GRBmodel *model, GRBenv *env, int *ind, double *va
 			}
 		}
 	}
-	return 0
+	return 0;
 }
+
+int limitValueInArea(GRBmodel *model, int i_s, int i_f, int j_s, int j_f, int *ind, double *val, int ***indexMapping, int N){
+	int i, j, k, n, error;
+	for(k=0; k<N; k++){
+		n = 0;
+		for(i=i_s; i<i_f; i++){
+			for(j=j_s; j<j_f; j++){
+				if(indexMapping[i][j][k]){
+					ind[n] = indexMapping[i][j][k] - 1;
+					val[n] = 1;
+					n++;
+				}	
+			}
+		}
+		if(n > 0){
+				error = GRBaddconstr(model, n, ind, val, GRB_LESS_EQUAL, 1, NULL);
+				if (error){
+					return error;
+				}
+			}
+	}
+	return 0;
+}
+
+int limitValueInRows(GRBmodel *model, GRBenv *env, int *ind, double *val, int ***indexMapping, int N){
+	int i, error;
+	for(i=0; i<N; i++){
+		error = limitValueInArea(model, i, i+1, 0, N, ind, val, indexMapping, N);
+		if (error){
+			printf("ERROR %d at GRBaddconstr() for row %d: %s\n", error, i, GRBgeterrormsg(env));
+			return -1;
+		}
+	}
+}
+
+int limitValueInColumns(GRBmodel *model, GRBenv *env, int *ind, double *val, int ***indexMapping, int N){
+	int j, error;
+	for(j=0; j<N; j++){
+		error = limitValueInArea(model, 0, N, j, j+1, ind, val, indexMapping, N);
+		if (error){
+			printf("ERROR %d at GRBaddconstr() for column %d: %s\n", error, j, GRBgeterrormsg(env));
+			return -1;
+		}
+	}
+}
+
+int limitValueInBlocks(GRBmodel *model, GRBenv *env, int *ind, double *val, int ***indexMapping, int m, int n){
+	int i, j, error;
+	int N = m * n;
+	for(i=0; i<n; i++){
+		for(j=0; j<m; j++){
+			error = limitValueInArea(model, i*m, (i+1)*m, j*n, (j+1)*n, ind, val, indexMapping, N);
+			if (error){
+				printf("ERROR %d at GRBaddconstr() for block %d: %s\n", error, j+i*m, GRBgeterrormsg(env));
+				return -1;
+			}
+		}
+	}
+}
+
+int setAreaColissionConstraints(GRBmodel *model, GRBenv *env, int *ind, double *val, int ***indexMapping, int m, int n){
+	int N = n * m;
+	return (
+		limitValueInBlocks(model, env, ind, val, indexMapping, m, n)
+		|| limitValueInColumns(model, env, ind, val, indexMapping, N)
+		|| limitValueInRows(model, env, ind, val, indexMapping, N)
+	);
+}
+
 
 int solveLP(Board *board)
 {
@@ -235,18 +304,12 @@ int solveLP(Board *board)
 		return -1;
 	}
 
-	/* Second constraint: x + y >= 1 */
-	ind[0] = 0;
-	ind[1] = 1;
-	val[0] = 1;
-	val[1] = 1;
+	/* area constraint: for any value k<=N we only one is allowed in:
+	for every row i: Xi1k + Xi2k + ... + XiNk <= 1 
+	for every column j: X1jk + X2jk + ... + XNjk <= 1
+	for every block b: SUM{Xck for any c in b} <= 1 */
 
-	/* add constraint to model - note size 2 + operator GRB_GREATER_EQUAL */
-	/* -- equation value (1.0) + unique constraint name */
-	error = GRBaddconstr(model, 2, ind, val, GRB_GREATER_EQUAL, 1.0, "c1");
-	if (error)
-	{
-		printf("ERROR %d 2nd GRBaddconstr(): %s\n", error, GRBgeterrormsg(env));
+	if(setAreaColissionConstraints(model, env, ind, val, indexMapping, board->m, board->n)){
 		return -1;
 	}
 
