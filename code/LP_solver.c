@@ -1,15 +1,6 @@
-/* Copyright 2013, Gurobi Optimization, Inc. */
-
-/* This example formulates and solves the following simple MIP model:
-
-     maximize    x + 3 y + 2 z
-     subject to  x + 2 y + 3 z <= 5
-                 x +   y       >= 1
-     x, y, z binary
-*/
-
 #include <stdlib.h>
 #include <stdio.h>
+#include "LP_solver.h"
 #include "gurobi_c.h"
 #include "board_handler.h"
 #include "game.h"
@@ -121,7 +112,7 @@ int setTargetFunction(GRBmodel *model, GRBenv *env, double *obj, char *vtype, ch
 	if (error)
 	{
 		printf("ERROR %d GRBaddvars(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
+		return GUROBI_FAILURE;
 	}
 	return 0;
 }
@@ -146,7 +137,7 @@ int setSingalValueConstraints(GRBmodel *model, GRBenv *env, int *ind, double *va
 				if (error)
 				{
 					printf("ERROR %d at GRBaddconstr() for cell (%d, %d): %s\n", error, i, j, GRBgeterrormsg(env));
-					return -1;
+					return GUROBI_FAILURE;
 				}
 			}
 		}
@@ -183,7 +174,7 @@ int limitValueInRows(GRBmodel *model, GRBenv *env, int *ind, double *val, int **
 		error = limitValueInArea(model, i, i+1, 0, N, ind, val, indexMapping, N);
 		if (error){
 			printf("ERROR %d at GRBaddconstr() for row %d: %s\n", error, i, GRBgeterrormsg(env));
-			return -1;
+			return GUROBI_FAILURE;
 		}
 	}
 }
@@ -194,7 +185,7 @@ int limitValueInColumns(GRBmodel *model, GRBenv *env, int *ind, double *val, int
 		error = limitValueInArea(model, 0, N, j, j+1, ind, val, indexMapping, N);
 		if (error){
 			printf("ERROR %d at GRBaddconstr() for column %d: %s\n", error, j, GRBgeterrormsg(env));
-			return -1;
+			return GUROBI_FAILURE;
 		}
 	}
 }
@@ -207,7 +198,7 @@ int limitValueInBlocks(GRBmodel *model, GRBenv *env, int *ind, double *val, int 
 			error = limitValueInArea(model, i*m, (i+1)*m, j*n, (j+1)*n, ind, val, indexMapping, N);
 			if (error){
 				printf("ERROR %d at GRBaddconstr() for block %d: %s\n", error, j+i*m, GRBgeterrormsg(env));
-				return -1;
+				return GUROBI_FAILURE;
 			}
 		}
 	}
@@ -257,14 +248,14 @@ int solveILP(Board *board)
 	if (error)
 	{
 		printf("ERROR %d GRBloadenv(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
+		return GUROBI_FAILURE;
 	}
 
 	error = GRBsetintparam(env, GRB_INT_PAR_LOGTOCONSOLE, 0);
 	if (error)
 	{
 		printf("ERROR %d GRBsetintattr(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
+		return GUROBI_FAILURE;
 	}
 
 	/* Create an empty model named "mip1" */
@@ -272,12 +263,12 @@ int solveILP(Board *board)
 	if (error)
 	{
 		printf("ERROR %d GRBnewmodel(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
+		return GUROBI_FAILURE;
 	}
 
 	/* Add variables */
 	if(setTargetFunction(model, env, obj, vtype, GRB_BINARY, numberOfVariables)){
-		return -1;
+		return GUROBI_FAILURE;
 	}
 	
 	/* Change objective sense to maximization */
@@ -285,7 +276,7 @@ int solveILP(Board *board)
 	if (error)
 	{
 		printf("ERROR %d GRBsetintattr(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
+		return GUROBI_FAILURE;
 	}
 
 	/* update the model - to integrate new variables */
@@ -294,14 +285,14 @@ int solveILP(Board *board)
 	if (error)
 	{
 		printf("ERROR %d GRBupdatemodel(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
+		return GUROBI_FAILURE;
 	}
 
 	/* cell constraint: any cell is allowed to have a single value 
 	Xij1 + Xij2 + ... + XijN <= 1 */
 
 	if(setSingalValueConstraints(model, env, ind, val, numberOfOptions, indexMapping, N)){
-		return -1;
+		return GUROBI_FAILURE;
 	}
 
 	/* area constraint: for any value k<=N we only one is allowed in:
@@ -310,7 +301,7 @@ int solveILP(Board *board)
 	for every block b: SUM{Xck for any c in b} <= 1 */
 
 	if(setAreaColissionConstraints(model, env, ind, val, indexMapping, board->m, board->n)){
-		return -1;
+		return GUROBI_FAILURE;
 	}
 
 	/* Optimize model - need to call this before calculation */
@@ -318,7 +309,7 @@ int solveILP(Board *board)
 	if (error)
 	{
 		printf("ERROR %d GRBoptimize(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
+		return GUROBI_FAILURE;
 	}
 
 	/* Get solution information */
@@ -327,7 +318,7 @@ int solveILP(Board *board)
 	if (error)
 	{
 		printf("ERROR %d GRBgetintattr(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
+		return GUROBI_FAILURE;
 	}
 
 	/* get the objective -- the optimal result of the function */
@@ -335,7 +326,7 @@ int solveILP(Board *board)
 	if (error)
 	{
 		printf("ERROR %d GRBgettdblattr(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
+		return GUROBI_FAILURE;
 	}
 
 	/* get the solution - the assignment to each variable */
@@ -344,7 +335,7 @@ int solveILP(Board *board)
 	if (error)
 	{
 		printf("ERROR %d GRBgetdblattrarray(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
+		return GUROBI_FAILURE;
 	}
 
 	/* print results */
@@ -359,7 +350,7 @@ int solveILP(Board *board)
 					break;
 				}
 				for(k=0; k++; k<N){
-					if(indexMapping[i][j][k] && ind[indexMapping[i][j][k] -1]){
+					if(indexMapping[i][j][k] && ind[indexMapping[i][j][k] - 1]){
 						setCell(board, i, j, k);
 						break;
 					}
@@ -370,12 +361,12 @@ int solveILP(Board *board)
 	/* no solution found */
 	else if (optimstatus == GRB_INF_OR_UNBD)
 	{
-		printf("Model is infeasible or unbounded\n");
+		return NON_SOLUTION;
 	}
 	/* error or calculation stopped */
 	else
 	{
-		printf("Optimization was stopped early\n");
+		return OPT_STOP_EARLY;
 	}
 
 	/* IMPORTANT !!! - Free model and environment */
