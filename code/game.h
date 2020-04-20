@@ -67,7 +67,7 @@ typedef enum {SET_NONE, SET_NOT_AVAILABLE, SET_INVALID_X, SET_INVALID_Y, SET_INV
 SetError set(Game *game, int x, int y, int val);
 
 
-typedef enum {VALID_NONE, VALID_NOT_AVAILABLE, VALID_ERRONEOUS} ValidateError;
+typedef enum {VALID_NONE, VALID_NOT_AVAILABLE, VALID_ERRONEOUS, VALID_GUROBI_ERR} ValidateError;
 /**
  * @post VALIDATE_NONE --> (*solvable == 0) || (*solvable == 1). (1 if board is solvable and 0 if not)
  */

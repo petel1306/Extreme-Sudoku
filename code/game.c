@@ -1,5 +1,6 @@
 #include "game.h"
 #include "backtracking.h"
+#include "LP_solver.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -278,20 +279,25 @@ AutofillError autofill(Game *game) {
 
 ValidateError valdiate(Game *game, unsigned int *solvable) {
 	/* Validates conditions */
+	Board *board;
 	if (game->mode == INIT) {
 		return VALID_NOT_AVAILABLE;
 	}
 	if (isErrBoard(game->turn->board)) {
 		return VALID_ERRONEOUS;
 	}
-
-	/*
-	 * <ILP solver functionality>
-	 * input: game->turn->board
-	 * *solvable = output
-	 */
-
-	/* Default implementation for the compiler */
+	board = cloneBoard(game->turn->board);
+	switch (solveILP(board))
+	{
+	case 0:
+		*solvable = 1;
+		break;
+	case 1:
+		*solvable = 0;
+		break;
+	default:
+		return VALID_GUROBI_ERR;
+	}
 	printf("%d\n", *solvable);
 
 	return VALID_NONE;
