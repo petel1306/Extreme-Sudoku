@@ -33,6 +33,50 @@ int keyFromString(char *key)
     return BADKEY;
 }
 
+int missingParameters(int givven, int requierd, int optional, int command){
+	if(!optional){
+		if(givven != requierd){
+			printf("ERROR: command %s requiers %d parameters, %d has given\n", commands[command-1].name, requierd, givven);
+			return 1;
+		}
+	}
+	else{
+		if(givven<requierd || givven>requierd+optional){
+			printf("ERROR: command %s requiers %d parameters and %d optional, %d has given\n", commands[command-1].name, requierd, optional, givven);
+			return 1;
+		}
+	}
+	return 0;
+}
+
+int handle_file_err(FileError error){
+	switch (error)
+	{
+	case FILE_CANT_OPEN:
+		printf("ERROR: cannont open file");
+		return 1;
+
+	case FILE_ERRONEOUS_FIXED_CELLS:
+		printf("ERROR: some fixed cells are erroneous");
+		return 1;
+
+	case FILE_INCORRECT_FORMAT:
+		printf("ERROR: incoreeect file format");
+		return 1;
+
+	case FILE_INCORRECT_RANGE:
+		printf("ERROR: some cells' value are not in the range");
+		return 1;
+	
+	case FILE_NONE:
+		break;
+	default:
+		printf("ERROR: general file error");
+		return 1;
+	}
+	return 0;
+}
+
 /**
  * The entry function of this module.
  * Composite of: 1. get input from the user 2. parse it 3. operates if valid 4. prints fits output
@@ -43,10 +87,12 @@ int getCommand(Game *game) {
     char* command;
     char* parameters[3];
     char* p;
-    int i, ch;
+    int i, ch, error;
 	size_t len;
 	int EOLfound = 0;
     int parameters_amount = 0;
+
+	printf("please enter acommand\n");
     /*reads the input from the user */
     if(fgets(command_str, LEN_LIM + 3, stdin) == NULL){
         return 1;
@@ -79,24 +125,39 @@ int getCommand(Game *game) {
         return 0;
     }
     /*gets the parameters, 3 at most */
-    for(i=0; i<3; i++){
-        p = strtok(NULL, " ");
-        if(p==NULL){
-            break;
-        }
-        parameters[i] = p;
+	i = 0;
+    p = strtok(NULL, " ");
+    while(p != NULL){
+		if(i<3){
+        	parameters[i++] = p;
+		}
         parameters_amount++;
+        p = strtok(NULL, " ");
     }
-	printf("%u\n", game->markErrors);
 	if(parameters_amount){
-		printf("%s\n", parameters[0]);
+		p = parameters[0];
 	}
 	switch (keyFromString(command))
 	{
 	case SOLVE:
+		if(missingParameters(parameters_amount, 1, 0, SOLVE)){
+			return 0;
+		}
+		error = solve(game, parameters[0]);
+		if(handle_file_err(error)){
+			return 0;
+		}
 		break;
 	
 	case EDIT:
+		if(missingParameters(parameters_amount, 0, 1, EDIT)){
+			return 0;
+		}
+		p = parameters_amount ? parameters[0] : NULL;
+		error = edit(game, p);
+		if(handle_file_err(error)){
+			return 0;
+		}
 		break;
 	
 	case MARK_ERRORS:
@@ -146,8 +207,9 @@ int getCommand(Game *game) {
 
 	case BADKEY:
 		printf("invalid command\n");
-		break;
+		return 0;
 	}
+	print_board(game);
 	return 0;
 }
 
