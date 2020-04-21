@@ -468,7 +468,7 @@ HintError hint(Game *game, int x, int y, int *hintVal) {
 
 HintError guess_hint(Game *game, int x, int y, int *n, int *values, double *scores) {
 	HintError error = hintValidate(game, x, y);
-	int i;
+	int i, j;
 	int N = game->turn->board->m * game->turn->board->n;
 	double *scores_t = (double*) malloc(sizeof(double) * N);
 	if (error != HINT_NONE) {
@@ -478,14 +478,15 @@ HintError guess_hint(Game *game, int x, int y, int *n, int *values, double *scor
 	switch (guess_hintLP(game->turn->board, x, y, scores_t))
 	{
 	case 0:
-		*n = 0;
+		j = 0;
 		for(i=0; i<N; i++){
 			if(scores_t[i]){
-				scores[*n] = scores_t[i];
-				values[*n] = i+1;
-				*n++;
+				scores[j] = scores_t[i];
+				values[j] = i+1;
+				j++;
 			}
 		}
+		*n = j;
 		break;
 	
 	case 1:

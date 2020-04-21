@@ -100,7 +100,7 @@ int calculateOptions(Board *board, int ***options, int **numberOfOptions)
 	return counter;
 }
 
-int setTargetFunction(GRBmodel *model, GRBenv *env, int integer, double *obj, char *vtype, char type, int numberOfVariables){
+int setTargetFunction(GRBmodel *model, GRBenv *env, int N, int integer, double *obj, char *vtype, char type, int numberOfVariables){
 	int i, error;
 	double *bounds = integer ? NULL : (double*) malloc(numberOfVariables * sizeof(double));
 	for(i=0; i<numberOfVariables; i++){
@@ -233,7 +233,6 @@ void guessImp(Board *board, int*** indexMapping, int** numberOfOptions, int* ind
 			n = 0;
 			s = 0;
 			for(k=0; k<N; k++){
-				sol[indexMapping[i][j][k] - 1];
 				if(indexMapping[i][j][k] && sol[indexMapping[i][j][k] - 1] >= threshold){
 					ind[n++] = k;
 					s += sol[indexMapping[i][j][k] - 1];
@@ -278,7 +277,7 @@ void hintImp(int x, int y, int *v, int*** indexMapping, int N, double* sol){
 	int k;
 	for(k=0; k<N; k++){
 		if(indexMapping[x][y][k] && sol[indexMapping[x][y][k] - 1]){
-			*v = k+1
+			*v = k+1;
 			break;
 		}
 	}
@@ -313,7 +312,7 @@ int solveILP(Board *board, int mode, int x, int y, int *v, float threshold, doub
 {
 	int N = board->m * board->n;
 	int integer = (mode==1 || mode==4) ? 0 : 1;
-	int i, j, k, n, s, t;
+	int i;
 	int **numberOfOptions, ***indexMapping;
 	int numberOfVariables;
 	GRBenv *env = NULL;
@@ -364,7 +363,7 @@ int solveILP(Board *board, int mode, int x, int y, int *v, float threshold, doub
 
 	/* Add variables */
 	type = integer ? GRB_BINARY : GRB_CONTINUOUS;
-	if(setTargetFunction(model, env, obj, vtype, type, numberOfVariables)){
+	if(setTargetFunction(model, env, N, integer, obj, vtype, type, numberOfVariables)){
 		return GUROBI_FAILURE;
 	}
 	
@@ -507,7 +506,7 @@ int generateILP(Board *board){
 }
 
 int hintILP(Board *board, int x, int y, int *val){
-	return solveILP(board, 3, x, y, val, 0, NULL;)
+	return solveILP(board, 3, x, y, val, 0, NULL);
 }
 
 int guess_hintLP(Board *board, int x, int y, double *scores){
