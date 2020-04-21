@@ -223,7 +223,7 @@ int setAreaColissionConstraints(GRBmodel *model, GRBenv *env, int *ind, double *
 	);
 }
 
-guessImp(Board *board, int*** indexMapping, int** numberOfOptions, int* ind, int N, int threshold, double* sol){
+void guessImp(Board *board, int*** indexMapping, int** numberOfOptions, int* ind, int N, int threshold, double* sol){
 	int i, j, k, n, s, t;
 	for(i=0; i<N; i++){
 		for(j=0; j<N; j++){
@@ -252,6 +252,23 @@ guessImp(Board *board, int*** indexMapping, int** numberOfOptions, int* ind, int
 					}
 				} 
 				setCell(board, i, j, ind[k]+1);
+			}
+		}		
+	}
+}
+
+void generateImp(Board *board, int*** indexMapping, int** numberOfOptions, int N, double* sol){
+	int i, j, k;
+	for(i=0; i<N; i++){
+		for(j=0; j<N; j++){
+			if(!numberOfOptions[i][j]){
+				continue;
+			}
+			for(k=0; k<N; k++){
+				if(indexMapping[i][j][k] && sol[indexMapping[i][j][k] - 1]){
+					setCell(board, i, j, k+1);
+					break;
+				}
 			}
 		}		
 	}
@@ -410,19 +427,7 @@ int solveILP(Board *board, int mode, int x, int, int y, int *v, double threshold
 			break;
 		
 		case 2:
-			for(i=0; i<N; i++){
-				for(j=0; j<N; j++){
-					if(!numberOfOptions[i][j]){
-						continue;
-					}
-					for(k=0; k<N; k++){
-						if(indexMapping[i][j][k] && sol[indexMapping[i][j][k] - 1]){
-							setCell(board, i, j, k+1);
-							break;
-						}
-					}
-				}		
-			}
+			generateImp(board, indexMapping, numberOfOptions, N, sol);
 			break;
 
 		default:
