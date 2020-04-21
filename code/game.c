@@ -279,15 +279,13 @@ AutofillError autofill(Game *game) {
 
 ValidateError valdiate(Game *game, unsigned int *solvable) {
 	/* Validates conditions */
-	Board *board;
 	if (game->mode == INIT) {
 		return VALID_NOT_AVAILABLE;
 	}
 	if (isErrBoard(game->turn->board)) {
 		return VALID_ERRONEOUS;
 	}
-	board = cloneBoard(game->turn->board);
-	switch (solveILP(board))
+	switch (validateILP(game->turn->board))
 	{
 	case 0:
 		*solvable = 1;
@@ -299,7 +297,6 @@ ValidateError valdiate(Game *game, unsigned int *solvable) {
 		return VALID_GUROBI_ERR;
 	}
 	printf("%d\n", *solvable);
-	destroyBoard(board);
 	return VALID_NONE;
 }
 
@@ -317,14 +314,16 @@ GuessError guess(Game *game, float x) {
 	newMove(game);
 	sprintf(game->turn->change, "guess the following cells:\n");
 
-	/*
-	 * <LP solver functionality>
-	 * input: game->turn->board, x
-	 */
-
-	/* Default implementation for the compiler */
-	printf("%f\n", x);
-
+	switch (guessLP(game->turn->board, x))
+	{
+	case 0:
+		break;
+	case 1:
+		break;
+	default:
+		/* Petel --- maby need to remove the turn, i dont know */
+		return GUESS_GUROBI_ERR;
+	}
 	return GUESS_NONE;
 }
 
@@ -393,7 +392,7 @@ GenerateError generate(Game *game, int x, int y) {
 	for(try=0; try<1000; try++){
 		board = cloneBoard(board);
 		if(fillValues(board, x, N)){
-			switch (solveILP(board))
+			switch (generateILP(board))
 			{
 			case 0:
 				chooseCells(board, y, N);
@@ -449,15 +448,12 @@ HintError hintValidate(Game *game, int x, int y) { /* Validates hint, guess_hint
 
 HintError hint(Game *game, int x, int y, int *hintVal) {
 	HintError error = hintValidate(game, x, y);
-	Board *board;
 	if (error != HINT_NONE) {
 		return error;
 	}
-	board = cloneBoard(game->turn->board);
-	switch (solveILP(board))
+	switch (hintILP(game->turn->board, x, y, hintVal))
 	{
 	case 0:
-		*hintVal = board->cells[x][y].value;
 		break;
 	case 1:
 		return HINT_UNSOLVABLE;
@@ -470,26 +466,38 @@ HintError hint(Game *game, int x, int y, int *hintVal) {
 }
 
 
-HintError guess_hint(Game *game, int x, int y, int **hintValList) {
+HintError guess_hint(Game *game, int x, int y, int *n, int *values, double *scores) {
 	HintError error = hintValidate(game, x, y);
+	int i;
+	int N = game->turn->board->m * game->turn->board->n;
+	double *scores_t = (double*) malloc(sizeof(double) * N);
 	if (error != HINT_NONE) {
 		return error;
 	}
 
-	/*
-	 * <LP solver functionality>
-	 * input: game->turn->board, x, y
-	 * *hintValList = output (pointer to a list)
-	 *
-	 * if (<the board is unsolvabled>) {
-	 * 		return HINT_UNSOLVABLE;
-	 * }
-	 */
+	switch (guess_hintLP(game->turn->board, x, y, scores_t))
+	{
+	case 0:
+		*n = 0;
+		for(i=0; i<N; i++){
+			if(scores_t[i]){
+				scores[*n] = scores_t[i];
+				values[*n] = i+1;
+				*n++;
+			}
+		}
+		break;
+	
+	case 1:
+		error = HINT_UNSOLVABLE;
+		break;
 
-	/* Default implementation for the compiler */
-	printf("%d\n", **hintValList);
-
-	return HINT_NONE;
+	default:
+		error = HINT_GUROBI_ERR;
+		break;
+	}
+	free(scores_t);
+	return error;
 }
 
 

@@ -74,7 +74,7 @@ typedef enum {VALID_NONE, VALID_NOT_AVAILABLE, VALID_ERRONEOUS, VALID_GUROBI_ERR
 ValidateError valdiate(Game *game, unsigned int *solvable);
 
 
-typedef enum {GUESS_NONE, GUESS_NOT_AVAILABLE, GUESS_ERRONEOUS} GuessError;
+typedef enum {GUESS_NONE, GUESS_NOT_AVAILABLE, GUESS_ERRONEOUS, GUESS_GUROBI_ERR} GuessError;
 
 GuessError guess(Game *game, float x);
 
@@ -115,7 +115,7 @@ HintError hint(Game *game, int x, int y, int *hintVal);
 /**
  * @post HINT_NONE --> *hintVal = array of all legal values of cell <X,Y> and their scores found by the *LP* solution
  */
-HintError guess_hint(Game *game, int x, int y, int **hintValList);
+HintError guess_hint(Game *game, int x, int y, int *n, int *values, double *scores);
 
 
 typedef enum {NUM_NONE, NUM_NOT_AVAILABLE, NUM_ERRONEOUS} NumSolutionsError;

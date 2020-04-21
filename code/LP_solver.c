@@ -223,7 +223,7 @@ int setAreaColissionConstraints(GRBmodel *model, GRBenv *env, int *ind, double *
 	);
 }
 
-void guessImp(Board *board, int*** indexMapping, int** numberOfOptions, int* ind, int N, int threshold, double* sol){
+void guessImp(Board *board, int*** indexMapping, int** numberOfOptions, int* ind, int N, float threshold, double* sol){
 	int i, j, k, n, s, t;
 	for(i=0; i<N; i++){
 		for(j=0; j<N; j++){
@@ -309,7 +309,7 @@ void guess_hintImp(int x, int y, double* scores, int*** indexMapping, double* so
  * @param v pointer to hint	
  * @param scores an array contains score for every value in cell(x,y)
 */
-int solveILP(Board *board, int mode, int x, int, int y, int *v, double threshold, double *scores)
+int solveILP(Board *board, int mode, int x, int y, int *v, float threshold, double *scores)
 {
 	int N = board->m * board->n;
 	int integer = (mode==1 || mode==4) ? 0 : 1;
@@ -492,4 +492,24 @@ int solveILP(Board *board, int mode, int x, int, int y, int *v, double threshold
 	free(numberOfOptions);
 
 	return error;
+}
+
+int validateILP(Board *board){
+	return solveILP(board, 0, 0, 0, NULL, 0, NULL);
+}
+
+int guessLP(Board *board, float threshold){
+	return solveILP(board, 1, 0, 0, NULL, threshold, NULL);
+}
+
+int generateILP(Board *board){
+	return solveILP(board, 2, 0, 0, NULL, 0, NULL);
+}
+
+int hintILP(Board *board, int x, int y, int *val){
+	return solveILP(board, 3, x, y, val, 0, NULL;)
+}
+
+int guess_hintLP(Board *board, int x, int y, double *scores){
+	return solveILP(board, 4, x, y, NULL, 0, scores);
 }
