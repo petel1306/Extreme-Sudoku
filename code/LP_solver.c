@@ -223,6 +223,40 @@ int setAreaColissionConstraints(GRBmodel *model, GRBenv *env, int *ind, double *
 	);
 }
 
+guessImp(Board *board, int*** indexMapping, int** numberOfOptions, int* ind, int N, int threshold, double* sol){
+	int i, j, k, n, s, t;
+	for(i=0; i<N; i++){
+		for(j=0; j<N; j++){
+			if(!numberOfOptions[i][j]){
+				continue;
+			}
+			n = 0;
+			s = 0;
+			for(k=0; k<N; k++){
+				sol[indexMapping[i][j][k] - 1];
+				if(indexMapping[i][j][k] && sol[indexMapping[i][j][k] - 1] >= threshold){
+					ind[n++] = k;
+					s += sol[indexMapping[i][j][k] - 1];
+				}
+			}
+			if(n==1){
+				setCell(board, i, j, ind[0]+1);
+			}
+			else if(n>1){
+				s *= rand() / RAND_MAX;
+				t = 0;
+				for(k=0; k<n; t++){
+					t += sol[indexMapping[i][j][ind[k]] - 1];
+					if(t >= s){
+						break;
+					}
+				} 
+				setCell(board, i, j, ind[k]+1);
+			}
+		}		
+	}
+}
+
 /**
  * @param board the board to solve
  * @param mode determine what to do in case of solution.
@@ -234,14 +268,13 @@ int setAreaColissionConstraints(GRBmodel *model, GRBenv *env, int *ind, double *
  * @param x row index
  * @param y column index
  * @param v pointer to hint	
- * @param solvable pointer to validate result
  * @param scores pinter to score for every value in cell(x,y)
 */
-int solveILP(Board *board, int mode, int x, int, y, int *v, int *solvable, double threshold, int *scores)
+int solveILP(Board *board, int mode, int x, int, int y, int *v, double threshold, int *scores)
 {
 	int N = board->m * board->n;
 	int integer = (mode==1 || mode==4) ? 0 : 1;
-	int i,j,k;
+	int i, j, k, n, s, t;
 	int **numberOfOptions, ***indexMapping;
 	int numberOfVariables;
 	GRBenv *env = NULL;
@@ -370,19 +403,32 @@ int solveILP(Board *board, int mode, int x, int, y, int *v, int *solvable, doubl
 	/* solution found */
 	if (optimstatus == GRB_OPTIMAL)
 	{
-		for(i=0; i<N; i++){
-			for(j=0; j<N; j++){
-				if(!numberOfOptions[i][j]){
-					continue;
-				}
-				for(k=0; k<N; k++){
-					if(indexMapping[i][j][k] && sol[indexMapping[i][j][k] - 1]){
-						setCell(board, i, j, k+1);
-						break;
+		switch (mode)
+		{
+		case 1: /* guess */
+			guessImp(board, indexMapping, numberOfOptions, ind, N, threshold, sol);
+			break;
+		
+		case 2:
+			for(i=0; i<N; i++){
+				for(j=0; j<N; j++){
+					if(!numberOfOptions[i][j]){
+						continue;
 					}
-				}
+					for(k=0; k<N; k++){
+						if(indexMapping[i][j][k] && sol[indexMapping[i][j][k] - 1]){
+							setCell(board, i, j, k+1);
+							break;
+						}
+					}
+				}		
 			}
+			break;
+
+		default:
+			break;
 		}
+		
 	}
 	/* no solution found */
 	else if (optimstatus == GRB_INF_OR_UNBD)
