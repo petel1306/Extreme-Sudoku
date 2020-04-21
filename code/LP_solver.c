@@ -100,15 +100,21 @@ int calculateOptions(Board *board, int ***options, int **numberOfOptions)
 	return counter;
 }
 
-int setTargetFunction(GRBmodel *model, GRBenv *env, double *obj, char *vtype, char type, int numberOfVariables){
+int setTargetFunction(GRBmodel *model, GRBenv *env, int integer, double *obj, char *vtype, char type, int numberOfVariables){
 	int i, error;
-	int mod = numberOfVariables * numberOfVariables;
+	double *bounds = integer ? NULL : (double*) malloc(numberOfVariables * sizeof(double));
 	for(i=0; i<numberOfVariables; i++){
-		obj[i] = (rand() % mod) + 1;
+		obj[i] = (rand() % (2 * N)) + 1;
 		vtype[i] = type;
+		if(integer){
+			bounds[i] = 1.0;
+		}
 	}
 	/* add variables to model */
-	error = GRBaddvars(model, numberOfVariables, 0, NULL, NULL, NULL, obj, NULL, NULL, vtype, NULL);
+	error = GRBaddvars(model, numberOfVariables, 0, NULL, NULL, NULL, obj, NULL, bounds, vtype, NULL);
+	if(integer){
+		free(bounds);
+	}
 	if (error)
 	{
 		printf("ERROR %d GRBaddvars(): %s\n", error, GRBgeterrormsg(env));
@@ -217,10 +223,24 @@ int setAreaColissionConstraints(GRBmodel *model, GRBenv *env, int *ind, double *
 	);
 }
 
-
-int solveILP(Board *board)
+/**
+ * @param board the board to solve
+ * @param mode determine what to do in case of solution.
+ * 0 - validate
+ * 1 - guess
+ * 2 - generate
+ * 3 - hint
+ * 4 - guess_hint
+ * @param x row index
+ * @param y column index
+ * @param v pointer to hint	
+ * @param solvable pointer to validate result
+ * @param scores pinter to score for every value in cell(x,y)
+*/
+int solveILP(Board *board, int mode, int x, int, y, int *v, int *solvable, double threshold, int *scores)
 {
 	int N = board->m * board->n;
+	int integer = (mode==1 || mode==4) ? 0 : 1;
 	int i,j,k;
 	int **numberOfOptions, ***indexMapping;
 	int numberOfVariables;
@@ -229,7 +249,7 @@ int solveILP(Board *board)
 	int error = 0;
 	double *sol, *val, *obj;
 	int *ind;
-	char *vtype;
+	char *vtype, type;
 	int optimstatus;
 	double objval;
 
@@ -271,7 +291,8 @@ int solveILP(Board *board)
 	}
 
 	/* Add variables */
-	if(setTargetFunction(model, env, obj, vtype, GRB_BINARY, numberOfVariables)){
+	type = integer ? GRB_BINARY : GRB_CONTINUOUS;
+	if(setTargetFunction(model, env, obj, vtype, type, numberOfVariables)){
 		return GUROBI_FAILURE;
 	}
 	

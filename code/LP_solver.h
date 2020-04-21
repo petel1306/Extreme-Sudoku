@@ -3,7 +3,6 @@
 #define OPT_STOP_EARLY 2
 #define GUROBI_FAILURE -1
 
-int solveILP(Board *board);
 
 int **create2D(int dim, int defaultValue);
 
