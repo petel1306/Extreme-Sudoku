@@ -30,6 +30,7 @@
 
 #include "io_handler.h"
 #include "main_aux.h"
+#include <stdio.h>
 
 
 int main() {
@@ -40,6 +41,7 @@ int main() {
 	while (1) {
 		isTimeToExit = getCommand(game);
 		if (isTimeToExit) {
+			printf("Exiting...");
 			destroyGame(game);
 			return 0;
 		}

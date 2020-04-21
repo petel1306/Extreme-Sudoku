@@ -1,6 +1,37 @@
+#define LEN_LIM 256
 #include "io_handler.h"
 #include <stdio.h>
+#include <string.h>
 
+static t_command commands[] = {
+	{"solve", SOLVE},
+	{"edit", EDIT},
+	{"mark_errors", MARK_ERRORS},
+	{"print_board", PRINT_BOARD},
+	{"set", SET},
+	{"validate", VALIDATE},
+	{"guess", GUESS},
+	{"generate", GENERATE},
+	{"undo", UNDO},
+	{"redo", REDO},
+	{"save", SAVE},
+	{"hint", HINT},
+	{"guess_hint", GUESS_HINT},
+	{"num_solutions", NUM_SOLUTIONS},
+	{"autofill", AUTOFILL},
+	{"reset", RESET},
+	{"exit", EXIT}
+};
+
+int keyFromString(char *key)
+{
+    int i;
+    for (i=0; i < NKEYS; i++) {
+        if (strcmp(commands[i].name, key) == 0)
+            return commands[i].val;
+    }
+    return BADKEY;
+}
 
 /**
  * The entry function of this module.
@@ -8,7 +39,56 @@
  * @return non-value integer if the program should exit (because of exit command, error, etc...). else: 0
  */
 int getCommand(Game *game) {
-	return game->mode == INIT; /* Temporary meaningless implementation. Wll be filled by Yali. */
+	char command_str[LEN_LIM+3];
+    const char* command;
+    char *parameters[3];
+    char* p;
+    int i, ch;
+	size_t len;
+	int EOLfound = 0;
+    int parameters_amount = 0;
+    /*reads the input from the user */
+    if(fgets(command_str, LEN_LIM + 3, stdin) == NULL){
+        return 1;
+    }
+
+	len = strlen(command_str);
+	if(len>0 && command_str[len-1] == '\n'){
+		command_str[--len] = '\0';
+		EOLfound = 1;
+	}
+	if(len>LEN_LIM){
+		/* commant to long */
+		printf("too many\n");
+		while(!EOLfound){
+			ch = fgetc(stdin);
+			if(ch==EOF){
+				return 1;
+			}
+			if(ch=='\n'){
+				EOLfound = 1;
+			}
+		}
+		return 0;
+	}
+
+    /*gets the command */
+    command = strtok(command_str, " ");
+    if(command==NULL){
+		printf("unvalid command");
+        return 0;
+    }
+    /*gets the parameters, 3 at most */
+    for(i=0; i<3; i++){
+        p = strtok(NULL, " ");
+        if(p==NULL){
+            break;
+        }
+        parameters[i] = p;
+        parameters_amount++;
+    }
+	printf("%u %s\n", game->markErrors, parameters[0]);
+	return 0;
 }
 
 
@@ -16,5 +96,5 @@ int getCommand(Game *game) {
  * Prints the title of the game (our choice)
  */
 void printTitle() {
-	printf("Welcome to Exxxtreme Sudoku.\nHave fun!!! ");
+	printf("Welcome to Exxxtreme Sudoku.\nHave fun!!! \n");
 }
