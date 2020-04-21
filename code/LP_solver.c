@@ -274,6 +274,16 @@ void generateImp(Board *board, int*** indexMapping, int** numberOfOptions, int N
 	}
 }
 
+void hintImp(int x, int y, int *v, int*** indexMapping, int N, int* sol){
+	int k;
+	for(k=0; k<N; k++){
+		if(indexMapping[x][y][k] && sol[indexMapping[x][y][k] - 1]){
+			*v = k+1
+			break;
+		}
+	}
+}
+
 /**
  * @param board the board to solve
  * @param mode determine what to do in case of solution.
@@ -428,6 +438,10 @@ int solveILP(Board *board, int mode, int x, int, int y, int *v, double threshold
 		
 		case 2:
 			generateImp(board, indexMapping, numberOfOptions, N, sol);
+			break;
+
+		case 3:
+			hintImp(x, y, v, indexMapping, N, sol);
 			break;
 
 		default:
