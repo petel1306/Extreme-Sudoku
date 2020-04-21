@@ -71,7 +71,7 @@ typedef enum {VALID_NONE, VALID_NOT_AVAILABLE, VALID_ERRONEOUS, VALID_GUROBI_ERR
 /**
  * @post VALIDATE_NONE --> (*solvable == 0) || (*solvable == 1). (1 if board is solvable and 0 if not)
  */
-ValidateError valdiate(Game *game, unsigned int *solvable);
+ValidateError valdiate(Game *game, int *solvable);
 
 
 typedef enum {GUESS_NONE, GUESS_NOT_AVAILABLE, GUESS_ERRONEOUS, GUESS_GUROBI_ERR} GuessError;

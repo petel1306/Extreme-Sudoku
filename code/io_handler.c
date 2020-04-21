@@ -1,6 +1,7 @@
 #define LEN_LIM 256
 #include "io_handler.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 static t_command commands[] = {
@@ -85,7 +86,7 @@ int handle_mark_err(MarkError error){
 		return 1;
 
 	case MARK_NOT_AVAILABLE:
-		printf("ERROR: command available only on Solve mode\n");
+		printf("ERROR: command available only in Solve mode\n");
 		return 1;
 
 	case MARK_NONE:
@@ -134,7 +135,7 @@ int handle_set_err(SetError error){
 		return 1;
 
 	case SET_NOT_AVAILABLE:
-		printf("ERROR: the command is only available in Edit and Solve mode");
+		printf("ERROR: the command is only available in Edit and Solve mode\n");
 		return 1;
 	
 	case SET_NONE:
@@ -158,13 +159,37 @@ int handle_validate_err(ValidateError error){
 		return 1;
 
 	case VALID_NOT_AVAILABLE:
-		printf("ERROR: the command is only available in Edit and Solve mode");
+		printf("ERROR: the command is only available in Edit and Solve mode\n");
 		return 1;
 	
 	case VALID_NONE:
 		break;
 	default:
 		printf("ERROR: general validate error\n");
+		return 1;
+	}
+	return 0;
+}
+
+int handle_guess_err(GuessError error){
+	switch (error)
+	{
+	case GUESS_ERRONEOUS:
+		printf("ERROR: the board is erroneous\n");
+		return 1;
+
+	case GUESS_GUROBI_ERR:
+		printf("ERROR: gurobi error\n");
+		return 1;
+
+	case GUESS_NOT_AVAILABLE:
+		printf("ERROR: the command is only available in Solve mode\n");
+		return 1;
+
+	case GUESS_NONE:
+		break;
+	default:
+		printf("ERROR: general guess error\n");
 		return 1;
 	}
 	return 0;
@@ -182,7 +207,7 @@ int handle_generate_err(GenerateError error){
 		return 1;
 
 	case GEN_NOT_AVAILABLE:
-		printf("ERROR: the command is only available in Edit and Solve mode");
+		printf("ERROR: the command is only available in Edit and Solve mode\n");
 		return 1;
 	
 	case GEN_INVALID_X:
@@ -238,7 +263,7 @@ int handle_save_err(SaveError error){
 		return 1;
 
 	case SAVE_NOT_AVAILABLE:
-		printf("ERROR: the command is only available in Edit and Solve mode");
+		printf("ERROR: the command is only available in Edit and Solve mode\n");
 		return 1;
 	
 	case SAVE_NONE:
@@ -270,7 +295,7 @@ int handle_hint_err(HintError error){
 		return 1;
 
 	case HINT_NOT_AVAILABLE:
-		printf("ERROR: the command is only available in Solve mode");
+		printf("ERROR: the command is only available in Solve mode\n");
 		return 1;
 	
 	case HINT_INVALID_X:
@@ -298,7 +323,7 @@ int handle_num_solutions_err(NumSolutionsError error){
 		return 1;
 
 	case NUM_NOT_AVAILABLE:
-		printf("ERROR: the command is only available in Edit and Solve mode");
+		printf("ERROR: the command is only available in Edit and Solve mode\n");
 		return 1;
 	
 	case NUM_NONE:
@@ -318,7 +343,7 @@ int handle_autofill_err(AutofillError error){
 		return 1;
 
 	case AUTO_NOT_AVAILABLE:
-		printf("ERROR: the command is only available in Solve mode");
+		printf("ERROR: the command is only available in Solve mode\n");
 		return 1;
 
 	case AUTO_NONE:
@@ -334,7 +359,7 @@ int handle_reset_err(ResetError error){
 	switch (error)
 	{
 	case RESET_NOT_AVAILABLE:
-		printf("ERROR: the command is only available in Edit and Solve mode");
+		printf("ERROR: the command is only available in Edit and Solve mode\n");
 		return 1;
 
 	case RESET_NONE:
@@ -344,6 +369,20 @@ int handle_reset_err(ResetError error){
 		return 1;
 	}
 	return 0;
+}
+
+int* alloc_values(Game *game){
+	int N = game->turn->board->m * game->turn->board->n;
+	return (int*) malloc(sizeof(int) * N);
+}
+
+double* alloc_scores(Game *game){
+	int N = game->turn->board->m * game->turn->board->n;
+	return (double*) malloc(sizeof(double) * N);
+}
+
+char* alloc_change(){
+	return (char*) malloc(sizeof(char)*4096);
 }
 
 /**
@@ -356,10 +395,15 @@ int getCommand(Game *game) {
     char* command;
     char* parameters[3];
     char* p;
-    int i, ch, error, x;
+    int i, ch, error;
+	float f;
+	int x, y, z;
 	size_t len;
 	int EOLfound = 0;
     int parameters_amount = 0;
+	char *change;
+	int *values;
+	double *scores;
 
 	printf("please enter a command\n");
     /*reads the input from the user */
@@ -434,53 +478,219 @@ int getCommand(Game *game) {
 			return 0;
 		}
 		if(sscanf(parameters[0], "%d", &x) == EOF){
-			printf("ERROR: parameter should be integer");
+			printf("ERROR: parameter should be integer\n");
 			return 0;
 		}
 		error = mark_errors(game, x);
 		if(handle_mark_err(error)){
 			return 0;
 		}
-		printf("mark_errors has changed to %d", x);
+		printf("mark_errors has changed to %d\n", x);
 		break;
 	
 	case PRINT_BOARD:
+		if(missingParameters(parameters_amount, 0, 0, PRINT_BOARD)){
+			return 0;
+		}
+		error = print_board(game);
+		if(handle_print_err(error)){
+			return 0;
+		}
 		break;
 	
 	case SET:
+		if(missingParameters(parameters_amount, 3, 0, SET)){
+			return 0;
+		}
+		if(sscanf(parameters[0], "%d", &x) == EOF){
+			printf("ERROR: x should be an integer\n");
+			return 0;
+		}
+		if(sscanf(parameters[1], "%d", &y) == EOF){
+			printf("ERROR: y should be an integer\n");
+			return 0;
+		}
+		if(sscanf(parameters[2], "%d", &z) == EOF){
+			printf("ERROR: value should be an integer\n");
+			return 0;
+		}
+		error = set(game, x, y, z);
+		if(handle_set_err(error)){
+			return 0;
+		}
+		printf("successfully set cell (%d, %d) to %d\n", x, y, z);
 		break;
 	
 	case VALIDATE:
+		if(missingParameters(parameters_amount, 0, 0, VALIDATE)){
+			return 0;
+		}
+		error = valdiate(game, &i);
+		if(handle_print_err(error)){
+			return 0;
+		}
+		if(i){
+			printf("board is solvable, go for it\n");
+		}
+		else{
+			printf("board is unsolvable\n");
+		}
 		break;
 	
 	case GUESS:
+		if(missingParameters(parameters_amount, 1, 0, GUESS)){
+			return 0;
+		}
+		if(sscanf(parameters[0], "%f", &f) == EOF){
+			printf("ERROR: parameter should be float\n");
+			return 0;
+		}
+		error = guess(game, f);
+		if(handle_guess_err(error)){
+			return 0;
+		}
 		break;
 	
 	case GENERATE:
+		if(missingParameters(parameters_amount, 2, 0, GENERATE)){
+			return 0;
+		}
+		if(sscanf(parameters[0], "%d", &x) == EOF){
+			printf("ERROR: x should be an integer\n");
+			return 0;
+		}
+		if(sscanf(parameters[1], "%d", &y) == EOF){
+			printf("ERROR: y should be an integer\n");
+			return 0;
+		}
+		error = generate(game, x, y);
+		if(handle_generate_err(error)){
+			return 0;
+		}
 		break;
 	
 	case UNDO:
+		if(missingParameters(parameters_amount, 0, 0, UNDO)){
+			return 0;
+		}
+		change = alloc_change();
+		error = undo(game, change);
+		if(handle_undo_redo_err(error)){
+			free(change);
+			return 0;
+		}
+		printf("%s\n", change);
+		free(change);
 		break;
 	
 	case REDO:
+		if(missingParameters(parameters_amount, 0, 0, REDO)){
+			return 0;
+		}
+		change = alloc_change();
+		error = redo(game, change);
+		if(handle_undo_redo_err(error)){
+			free(change);
+			return 0;
+		}
+		printf("%s\n", change);
+		free(change);
 		break;
 	
 	case SAVE:
+		if(missingParameters(parameters_amount, 1, 0, SAVE)){
+			return 0;
+		}
+		error = edit(game, parameters[0]);
+		if(handle_save_err(error)){
+			return 0;
+		}
+		printf("board has saved to: %s\n", parameters[0]);
 		break;
 	
 	case HINT:
+		if(missingParameters(parameters_amount, 2, 0, HINT)){
+			return 0;
+		}
+		if(sscanf(parameters[0], "%d", &x) == EOF){
+			printf("ERROR: x should be an integer\n");
+			return 0;
+		}
+		if(sscanf(parameters[1], "%d", &y) == EOF){
+			printf("ERROR: y should be an integer\n");
+			return 0;
+		}
+		error = hint(game, x, y, &i);
+		if(handle_hint_err(error)){
+			return 0;
+		}
+		printf("--TOP SECRET-- your hint for cell (%d, %d) is %d. DESTROY AFTER READING\n", x, y, i);
 		break;
 	
 	case GUESS_HINT:
+		if(missingParameters(parameters_amount, 2, 0, GUESS_HINT)){
+			return 0;
+		}
+		if(sscanf(parameters[0], "%d", &x) == EOF){
+			printf("ERROR: x should be an integer\n");
+			return 0;
+		}
+		if(sscanf(parameters[1], "%d", &y) == EOF){
+			printf("ERROR: y should be an integer\n");
+			return 0;
+		}
+		values = alloc_values(game);
+		scores = alloc_scores(game);
+		error = guess_hint(game, x, y, &z, values, scores);
+		if(handle_hint_err(error)){
+			free(values);
+			free(scores);
+			return 0;
+		}
+		if(z){
+			printf("list of possible hints:\n");
+			for(i=0; i<z; i++){
+				printf("%d: %f.2", values[i], scores[i]);
+			}
+		}
+		else{
+			printf("no hints");
+		}
+		free(values);
+		free(scores);
 		break;
 	
 	case NUM_SOLUTIONS:
+		if(missingParameters(parameters_amount, 0, 0, NUM_SOLUTIONS)){
+			return 0;
+		}
+		error = num_solutions(game, &i);
+		if(handle_num_solutions_err(error)){
+			return 0;
+		}
+		printf("the board has %d solutions\n", i);
 		break;
 	
 	case AUTOFILL:
+		if(missingParameters(parameters_amount, 0, 0, AUTOFILL)){
+			return 0;
+		}
+		error = autofill(game);
+		if(handle_autofill_err(error)){
+			return 0;
+		}
+		printf("board has autofilled");
 		break;
 	
 	case RESET:
+		if(missingParameters(parameters_amount, 0, 0, RESET)){
+			return 0;
+		}
+		error = reset(game);
+		if(handle_reset_err(error)){
+			return 0;
+		}
+		printf("Reset...");
 		break;
 	
 	case EXIT:

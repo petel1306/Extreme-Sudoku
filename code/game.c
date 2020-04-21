@@ -277,7 +277,7 @@ AutofillError autofill(Game *game) {
 }
 
 
-ValidateError valdiate(Game *game, unsigned int *solvable) {
+ValidateError valdiate(Game *game, int *solvable) {
 	/* Validates conditions */
 	if (game->mode == INIT) {
 		return VALID_NOT_AVAILABLE;
