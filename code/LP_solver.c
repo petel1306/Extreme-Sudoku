@@ -106,13 +106,13 @@ int setTargetFunction(GRBmodel *model, GRBenv *env, int N, int integer, double *
 	for(i=0; i<numberOfVariables; i++){
 		obj[i] = (rand() % (2 * N)) + 1;
 		vtype[i] = type;
-		if(integer){
+		if(!integer){
 			bounds[i] = 1.0;
 		}
 	}
 	/* add variables to model */
 	error = GRBaddvars(model, numberOfVariables, 0, NULL, NULL, NULL, obj, NULL, bounds, vtype, NULL);
-	if(integer){
+	if(!integer){
 		free(bounds);
 	}
 	if (error)

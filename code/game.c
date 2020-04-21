@@ -339,6 +339,7 @@ int fillValues(Board *board, int x, int N){
 				setCell(board, i, j, v);
 				if(board->cells[i][j].state != ERRONEOUS){
 					c = 1;
+					n++;
 					break;
 				}
 			}
@@ -377,7 +378,7 @@ GenerateError generate(Game *game, int x, int y) {
 	int N = game->turn->board->m * game->turn->board->n;
 	int N2 = N*N;
 	int try;
-	Board *board;
+	Board *board, *nextBoard;
 	/* Validates conditions */
 	if (game->mode != EDIT) {
 		return GEN_NOT_AVAILABLE;
@@ -388,9 +389,14 @@ GenerateError generate(Game *game, int x, int y) {
 	if (y <= 0 || y > N2) {
 		return GEN_INVALID_Y;
 	}
-
+	
+	board = game->turn->board;
 	for(try=0; try<1000; try++){
-		board = cloneBoard(board);
+		nextBoard = cloneBoard(board);
+		if(try){
+			destroyBoard(board);
+		}
+		board = nextBoard;
 		if(fillValues(board, x, N)){
 			switch (generateILP(board))
 			{
@@ -405,11 +411,9 @@ GenerateError generate(Game *game, int x, int y) {
 				return GEN_NONE;
 			
 			case 1:
-				destroyBoard(board);
 				continue;
 
 			default:
-				destroyBoard(board);
 				return GEN_GURONI_ERR;
 			}
 		}
@@ -417,7 +421,7 @@ GenerateError generate(Game *game, int x, int y) {
 	return GEN_NOT_SUCCEEDED;
 }
 
-
+/* SOME PROBLEM HERE */
 HintError hintValidate(Game *game, int x, int y) { /* Validates hint, guess_hint conditions */
 	Board *board = game->turn->board;
 	int rowInd = y-1;

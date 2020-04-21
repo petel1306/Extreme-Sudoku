@@ -2,7 +2,7 @@ CC = gcc
 OBJS = backtracking.o board_handler.o file_handler.o game.o io_handler.o list_handler.o LP_solver.o main_aux.o main.o
 
 EXEC = sudoku
-COMP_FLAG = -ansi -Wall -Wextra -Werror -pedantic-errors
+COMP_FLAG = -g -ansi -Wall -Wextra -Werror -pedantic-errors
 GUROBI_COMP = -I/usr/local/lib/gurobi563/include
 GUROBI_LIB = -L/usr/local/lib/gurobi563/lib -lgurobi56
 
