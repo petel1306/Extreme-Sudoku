@@ -443,7 +443,7 @@ HintError hintValidate(Game *game, int x, int y) { /* Validates hint, guess_hint
 	if (board->cells[rowInd][colInd].state == FIXED) {
 		return HINT_FIXED_CELL;
 	}
-	if (board->cells[rowInd][colInd].value == 0) {
+	if (board->cells[rowInd][colInd].value != 0) {
 		return HINT_NON_EMPTY;
 	}
 	return HINT_NONE;
