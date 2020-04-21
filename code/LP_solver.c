@@ -274,12 +274,24 @@ void generateImp(Board *board, int*** indexMapping, int** numberOfOptions, int N
 	}
 }
 
-void hintImp(int x, int y, int *v, int*** indexMapping, int N, int* sol){
+void hintImp(int x, int y, int *v, int*** indexMapping, int N, double* sol){
 	int k;
 	for(k=0; k<N; k++){
 		if(indexMapping[x][y][k] && sol[indexMapping[x][y][k] - 1]){
 			*v = k+1
 			break;
+		}
+	}
+}
+
+void guess_hintImp(int x, int y, double* scores, int*** indexMapping, double* sol, int N){
+	int k;
+	for(k=0; k<N; k++){
+		if(indexMapping[x][y][k]){
+			scores[k] = sol[indexMapping[x][y][k] - 1];
+		}
+		else{
+			scores[k] = 0;
 		}
 	}
 }
@@ -295,9 +307,9 @@ void hintImp(int x, int y, int *v, int*** indexMapping, int N, int* sol){
  * @param x row index
  * @param y column index
  * @param v pointer to hint	
- * @param scores pinter to score for every value in cell(x,y)
+ * @param scores an array contains score for every value in cell(x,y)
 */
-int solveILP(Board *board, int mode, int x, int, int y, int *v, double threshold, int *scores)
+int solveILP(Board *board, int mode, int x, int, int y, int *v, double threshold, double *scores)
 {
 	int N = board->m * board->n;
 	int integer = (mode==1 || mode==4) ? 0 : 1;
@@ -442,6 +454,10 @@ int solveILP(Board *board, int mode, int x, int, int y, int *v, double threshold
 
 		case 3:
 			hintImp(x, y, v, indexMapping, N, sol);
+			break;
+
+		case 4:
+			guess_hintImp(x, y, scores, indexMapping, sol, N);
 			break;
 
 		default:
