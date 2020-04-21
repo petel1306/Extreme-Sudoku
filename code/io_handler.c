@@ -40,8 +40,8 @@ int keyFromString(char *key)
  */
 int getCommand(Game *game) {
 	char command_str[LEN_LIM+3];
-    const char* command;
-    char *parameters[3];
+    char* command;
+    char* parameters[3];
     char* p;
     int i, ch;
 	size_t len;
@@ -75,7 +75,7 @@ int getCommand(Game *game) {
     /*gets the command */
     command = strtok(command_str, " ");
     if(command==NULL){
-		printf("unvalid command");
+		printf("invalid command\n");
         return 0;
     }
     /*gets the parameters, 3 at most */
@@ -87,7 +87,67 @@ int getCommand(Game *game) {
         parameters[i] = p;
         parameters_amount++;
     }
-	printf("%u %s\n", game->markErrors, parameters[0]);
+	printf("%u\n", game->markErrors);
+	if(parameters_amount){
+		printf("%s\n", parameters[0]);
+	}
+	switch (keyFromString(command))
+	{
+	case SOLVE:
+		break;
+	
+	case EDIT:
+		break;
+	
+	case MARK_ERRORS:
+		break;
+	
+	case PRINT_BOARD:
+		break;
+	
+	case SET:
+		break;
+	
+	case VALIDATE:
+		break;
+	
+	case GUESS:
+		break;
+	
+	case GENERATE:
+		break;
+	
+	case UNDO:
+		break;
+	
+	case REDO:
+		break;
+	
+	case SAVE:
+		break;
+	
+	case HINT:
+		break;
+	
+	case GUESS_HINT:
+		break;
+	
+	case NUM_SOLUTIONS:
+		break;
+	
+	case AUTOFILL:
+		break;
+	
+	case RESET:
+		break;
+	
+	case EXIT:
+		return 1;
+
+	case BADKEY:
+		printf("invalid command\n");
+		break;
+	}
 	return 0;
 }
 
