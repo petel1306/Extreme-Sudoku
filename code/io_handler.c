@@ -53,25 +53,294 @@ int handle_file_err(FileError error){
 	switch (error)
 	{
 	case FILE_CANT_OPEN:
-		printf("ERROR: cannont open file");
+		printf("ERROR: cannont open file\n");
 		return 1;
 
 	case FILE_ERRONEOUS_FIXED_CELLS:
-		printf("ERROR: some fixed cells are erroneous");
+		printf("ERROR: some fixed cells are erroneous\n");
 		return 1;
 
 	case FILE_INCORRECT_FORMAT:
-		printf("ERROR: incoreeect file format");
+		printf("ERROR: incoreeect file format\n");
 		return 1;
 
 	case FILE_INCORRECT_RANGE:
-		printf("ERROR: some cells' value are not in the range");
+		printf("ERROR: some cells' value are not in the range\n");
 		return 1;
 	
 	case FILE_NONE:
 		break;
 	default:
-		printf("ERROR: general file error");
+		printf("ERROR: general file error\n");
+		return 1;
+	}
+	return 0;
+}
+
+int handle_mark_err(MarkError error){
+	switch (error)
+	{
+	case MARK_INCORRECT_VALUE:
+		printf("ERROR: value should be 0 or 1\n");
+		return 1;
+
+	case MARK_NOT_AVAILABLE:
+		printf("ERROR: command available only on Solve mode\n");
+		return 1;
+
+	case MARK_NONE:
+		break;
+	default:
+		printf("ERROR: general error\n");
+		return 1;
+	}
+	return 0;
+}
+
+
+int handle_print_err(PrintError error){
+	switch (error)
+	{
+	case PRINT_NOT_AVAILABLE:
+		printf("ERROR: the command is only available in Edit and Solve mode\n");
+		return 1;
+	
+	case PRINT_NONE:
+		break;
+	default:
+		printf("ERROR: general print error\n");
+		return 1;
+	}
+	return 0;
+}
+
+int handle_set_err(SetError error){
+	switch (error)
+	{
+	case SET_FIXED_CELL:
+		printf("ERROR: cannot set a fixed cell\n");
+		return 1;
+
+	case SET_INVALID_VALUE:
+		printf("ERROR: value is invalid\n");
+		return 1;
+
+	case SET_INVALID_X:
+		printf("ERROR: x is invalid\n");
+		return 1;
+
+	case SET_INVALID_Y:
+		printf("ERROR: y is invalid\n");
+		return 1;
+
+	case SET_NOT_AVAILABLE:
+		printf("ERROR: the command is only available in Edit and Solve mode");
+		return 1;
+	
+	case SET_NONE:
+		break;
+	default:
+		printf("ERROR: general set error\n");
+		return 1;
+	}
+	return 0;
+}
+
+int handle_validate_err(ValidateError error){
+	switch (error)
+	{
+	case VALID_ERRONEOUS:
+		printf("ERROR: the board is erroneous\n");
+		return 1;
+
+	case VALID_GUROBI_ERR:
+		printf("ERROR: gurobi error\n");
+		return 1;
+
+	case VALID_NOT_AVAILABLE:
+		printf("ERROR: the command is only available in Edit and Solve mode");
+		return 1;
+	
+	case VALID_NONE:
+		break;
+	default:
+		printf("ERROR: general validate error\n");
+		return 1;
+	}
+	return 0;
+}
+
+int handle_generate_err(GenerateError error){
+	switch (error)
+	{
+	case GEN_NOT_SUCCEEDED:
+		printf("ERROR: generate command has failed\n");
+		return 1;
+
+	case GEN_GUROBI_ERR:
+		printf("ERROR: gurobi error\n");
+		return 1;
+
+	case GEN_NOT_AVAILABLE:
+		printf("ERROR: the command is only available in Edit and Solve mode");
+		return 1;
+	
+	case GEN_INVALID_X:
+		printf("ERROR: x is invalid\n");
+		return 1;
+
+	case GEN_INVALID_Y:
+		printf("ERROR: y is invalid\n");
+		return 1;
+
+	case GEN_NONE:
+		break;
+	default:
+		printf("ERROR: general generate error\n");
+		return 1;
+	}
+	return 0;
+}
+
+int handle_undo_redo_err(UndoRedoError error){
+	switch (error)
+	{
+	case PRINT_NOT_AVAILABLE:
+		printf("ERROR: the command is only available in Edit and Solve mode\n");
+		return 1;
+	
+	case DO_NO_MOVES:
+		printf("ERROR: no moves\n");
+		return 1;
+	
+	case DO_NONE:
+		break;
+	default:
+		printf("ERROR: general undo/redo error\n");
+		return 1;
+	}
+	return 0;
+}
+
+int handle_save_err(SaveError error){
+	switch (error)
+	{
+	case SAVE_ERRONEOUS:
+		printf("ERROR: the board is erroneous\n");
+		return 1;
+
+	case SAVE_CANT_OPEN:
+		printf("ERROR: cannot open file\n");
+		return 1;
+
+	case SAVE_WITHOUT_SOLUTION:
+		printf("ERROR: board doesnt have a solution\n");
+		return 1;
+
+	case SAVE_NOT_AVAILABLE:
+		printf("ERROR: the command is only available in Edit and Solve mode");
+		return 1;
+	
+	case SAVE_NONE:
+		break;
+	default:
+		printf("ERROR: general save error\n");
+		return 1;
+	}
+	return 0;
+}
+
+int handle_hint_err(HintError error){
+	switch (error)
+	{
+	case HINT_ERRONEOUS:
+		printf("ERROR: the board is erroneous\n");
+		return 1;
+
+	case HINT_GUROBI_ERR:
+		printf("ERROR: gurobi error\n");
+		return 1;
+
+	case HINT_FIXED_CELL:
+		printf("ERROR: the cell is fixed\n");
+		return 1;
+
+	case HINT_NON_EMPTY:
+		printf("ERROR: the cell already has value\n");
+		return 1;
+
+	case HINT_NOT_AVAILABLE:
+		printf("ERROR: the command is only available in Solve mode");
+		return 1;
+	
+	case HINT_INVALID_X:
+		printf("ERROR: x is invalid\n");
+		return 1;
+
+	case HINT_INVALID_Y:
+		printf("ERROR: y is invalid\n");
+		return 1;
+
+	case HINT_NONE:
+		break;
+	default:
+		printf("ERROR: general hint error\n");
+		return 1;
+	}
+	return 0;
+}
+
+int handle_num_solutions_err(NumSolutionsError error){
+	switch (error)
+	{
+	case NUM_ERRONEOUS:
+		printf("ERROR: the board is erroneous\n");
+		return 1;
+
+	case NUM_NOT_AVAILABLE:
+		printf("ERROR: the command is only available in Edit and Solve mode");
+		return 1;
+	
+	case NUM_NONE:
+		break;
+	default:
+		printf("ERROR: general num_solution error\n");
+		return 1;
+	}
+	return 0;
+}
+
+int handle_autofill_err(AutofillError error){
+	switch (error)
+	{
+	case AUTO_ERRONEOUS:
+		printf("ERROR: the board is erroneous\n");
+		return 1;
+
+	case AUTO_NOT_AVAILABLE:
+		printf("ERROR: the command is only available in Solve mode");
+		return 1;
+
+	case AUTO_NONE:
+		break;
+	default:
+		printf("ERROR: general autofill error\n");
+		return 1;
+	}
+	return 0;
+}
+
+int handle_reset_err(ResetError error){
+	switch (error)
+	{
+	case RESET_NOT_AVAILABLE:
+		printf("ERROR: the command is only available in Edit and Solve mode");
+		return 1;
+
+	case RESET_NONE:
+		break;
+	default:
+		printf("ERROR: general reset error\n");
 		return 1;
 	}
 	return 0;
@@ -87,12 +356,12 @@ int getCommand(Game *game) {
     char* command;
     char* parameters[3];
     char* p;
-    int i, ch, error;
+    int i, ch, error, x;
 	size_t len;
 	int EOLfound = 0;
     int parameters_amount = 0;
 
-	printf("please enter acommand\n");
+	printf("please enter a command\n");
     /*reads the input from the user */
     if(fgets(command_str, LEN_LIM + 3, stdin) == NULL){
         return 1;
@@ -161,6 +430,18 @@ int getCommand(Game *game) {
 		break;
 	
 	case MARK_ERRORS:
+		if(missingParameters(parameters_amount, 1, 0, MARK_ERRORS)){
+			return 0;
+		}
+		if(sscanf(parameters[0], "%d", &x) == EOF){
+			printf("ERROR: parameter should be integer");
+			return 0;
+		}
+		error = mark_errors(game, x);
+		if(handle_mark_err(error)){
+			return 0;
+		}
+		printf("mark_errors has changed to %d", x);
 		break;
 	
 	case PRINT_BOARD:
@@ -207,9 +488,9 @@ int getCommand(Game *game) {
 
 	case BADKEY:
 		printf("invalid command\n");
-		return 0;
+		break;
 	}
-	print_board(game);
+	printf("\n");
 	return 0;
 }
 

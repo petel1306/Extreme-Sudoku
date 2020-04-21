@@ -414,7 +414,7 @@ GenerateError generate(Game *game, int x, int y) {
 				continue;
 
 			default:
-				return GEN_GURONI_ERR;
+				return GEN_GUROBI_ERR;
 			}
 		}
 	}
