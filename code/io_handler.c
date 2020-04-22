@@ -207,7 +207,7 @@ int handle_generate_err(GenerateError error){
 		return 1;
 
 	case GEN_NOT_AVAILABLE:
-		printf("ERROR: the command is only available in Edit and Solve mode\n");
+		printf("ERROR: the command is only available in Edit mode\n");
 		return 1;
 	
 	case GEN_INVALID_X:
