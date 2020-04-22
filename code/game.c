@@ -176,14 +176,15 @@ SaveError save(Game *game, char *path) {
 		return SAVE_NOT_AVAILABLE;
 	}
 	if (isEdit) {
-		if (isErrBoard(board)) {
-			return SAVE_ERRONEOUS;
-		}
-		/*
-		if ( <board is not solvable> ) {
+		switch (validateILP(game->turn->board))
+		{
+		case 0:
 			return SAVE_WITHOUT_SOLUTION;
+		case 1:
+			break;
+		default:
+			return SAVE_GUROBI_ERR;
 		}
-		 */
 	}
 	return saveBoardToFile(path, board, isEdit);
 }

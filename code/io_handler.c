@@ -262,6 +262,10 @@ int handle_save_err(SaveError error){
 		printf("ERROR: board doesnt have a solution\n");
 		return 1;
 
+	case SAVE_GUROBI_ERR:
+		printf("ERROR: gurobi error\n");
+		return 1;
+
 	case SAVE_NOT_AVAILABLE:
 		printf("ERROR: the command is only available in Edit and Solve mode\n");
 		return 1;
