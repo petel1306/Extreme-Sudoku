@@ -1,8 +1,5 @@
-#include "board_handler.h"
 
-/*
- * The module dont handle *yet* <stdio.h> functions' errors like: fopen, fclose, etc...
- */
+#include "board_handler.h"
 
 /**
  * Represent errors may be found in the file during solve, edit functions

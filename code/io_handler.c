@@ -718,7 +718,7 @@ int getCommand(Game *game) {
 	
 	if (needToPrint)
 	{
-		printBoard(game->turn->board, game->mode);
+		print_board(game);
 	}
 	return 0;
 }

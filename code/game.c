@@ -1,3 +1,7 @@
+/*
+ * This module contains mainly functions represent sudoku commands and all other auxiliary functions may be used
+ */
+
 #include "game.h"
 #include "backtracking.h"
 #include "LP_solver.h"
@@ -26,11 +30,14 @@ void destroyGame(Game *game) {
 
 
 BoardState isCompleted(Game *game) {
-	Board* board = game->turn->board;
-	int N = board->m * board->n;
+	Board* board;
+	int N;
+
 	if (game->mode != SOLVE_MODE) {
 		return COMPLETED_UNAVAILABLE;
 	}
+	board = game->turn->board;
+	N = board->m * board->n;
 	if (board->nonEmptyAmount < N * N) {
 		return NOT_COMPLETED;
 	}
