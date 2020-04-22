@@ -438,7 +438,7 @@ int getCommand(Game *game) {
 	}
 	if(len>LEN_LIM){
 		/* commant to long */
-		printf("too many\n");
+		printf("line is too long\n");
 		while(!EOLfound){
 			ch = fgetc(stdin);
 			if(ch==EOF){
@@ -541,7 +541,6 @@ int getCommand(Game *game) {
 		if(handle_set_err(error)){
 			return 0;
 		}
-		printf("successfully set cell (%d, %d) to %d\n", x, y, z);
 		needToPrint = 1;
 		break;
 	
@@ -708,7 +707,6 @@ int getCommand(Game *game) {
 		if(handle_autofill_err(error)){
 			return 0;
 		}
-		printf("board has autofilled");
 		needToPrint = 1;
 		break;
 	
