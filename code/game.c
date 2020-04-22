@@ -336,7 +336,7 @@ int fillValues(Board *board, int x, int N){
 		j = rand() % N;
 		if(!board->cells[i][j].value){
 			for(v=0; v<N; v++){
-				setCell(board, i, j, v);
+				setCell(board, i, j, v+1);
 				if(board->cells[i][j].state != ERRONEOUS){
 					c = 1;
 					n++;
@@ -378,7 +378,7 @@ GenerateError generate(Game *game, int x, int y) {
 	int N = game->turn->board->m * game->turn->board->n;
 	int N2 = N*N;
 	int try;
-	Board *board, *nextBoard;
+	Board *board;
 	/* Validates conditions */
 	if (game->mode != EDIT) {
 		return GEN_NOT_AVAILABLE;
@@ -390,14 +390,10 @@ GenerateError generate(Game *game, int x, int y) {
 		return GEN_INVALID_Y;
 	}
 	
-	board = game->turn->board;
 	for(try=0; try<1000; try++){
-		nextBoard = cloneBoard(board);
-		if(try){
-			destroyBoard(board);
-		}
-		board = nextBoard;
+		board = cloneBoard(game->turn->board);
 		if(fillValues(board, x, N)){
+			printBoard(board, 1);
 			switch (generateILP(board))
 			{
 			case 0:
@@ -411,12 +407,15 @@ GenerateError generate(Game *game, int x, int y) {
 				return GEN_NONE;
 			
 			case 1:
+				destroyBoard(board);
 				continue;
 
 			default:
+				destroyBoard(board);
 				return GEN_GUROBI_ERR;
 			}
 		}
+		destroyBoard(board);
 	}
 	return GEN_NOT_SUCCEEDED;
 }
