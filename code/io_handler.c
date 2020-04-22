@@ -525,7 +525,7 @@ int getCommand(Game *game) {
 		if(missingParameters(parameters_amount, 0, 0, VALIDATE)){
 			return 0;
 		}
-		error = valdiate(game, &i);
+		error = validate(game, &i);
 		if(handle_print_err(error)){
 			return 0;
 		}
