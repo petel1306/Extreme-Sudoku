@@ -483,7 +483,7 @@ int getCommand(Game *game) {
 			return 0;
 		}
 		if(sscanf(parameters[0], "%d", &x) == EOF){
-			printf("ERROR: parameter should be integer\n");
+			printf("ERROR: x should be an integer\n");
 			return 0;
 		}
 		error = mark_errors(game, x);
@@ -548,7 +548,7 @@ int getCommand(Game *game) {
 			return 0;
 		}
 		if(sscanf(parameters[0], "%f", &f) == EOF){
-			printf("ERROR: parameter should be float\n");
+			printf("ERROR: x should be float\n");
 			return 0;
 		}
 		error = guess(game, f);
