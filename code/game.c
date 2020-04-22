@@ -21,6 +21,7 @@ void deleteGameTurns(Game *game) {
 	if (game->turn!=NULL) {
 		deleteTurnsBeyond(getHead(game->turn));
 	}
+	game->turn = NULL;
 }
 
 void destroyGame(Game *game) {
