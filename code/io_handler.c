@@ -410,7 +410,6 @@ int getCommand(Game *game) {
 	double *scores;
 	int needToPrint = 0;
 
-	printf("please enter a command\n");
     /*reads the input from the user */
     if(fgets(command_str, LEN_LIM + 3, stdin) == NULL){
         return 1;
@@ -439,7 +438,6 @@ int getCommand(Game *game) {
     /*gets the command */
     command = strtok(command_str, " ");
     if(command==NULL){
-		printf("invalid command\n");
         return 0;
     }
     /*gets the parameters, 3 at most */
@@ -487,7 +485,7 @@ int getCommand(Game *game) {
 			return 0;
 		}
 		if(sscanf(parameters[0], "%d", &x) == EOF){
-			printf("ERROR: parameter should be integer\n");
+			printf("ERROR: x should be an integer\n");
 			return 0;
 		}
 		error = mark_errors(game, x);
@@ -552,7 +550,7 @@ int getCommand(Game *game) {
 			return 0;
 		}
 		if(sscanf(parameters[0], "%f", &f) == EOF){
-			printf("ERROR: parameter should be float\n");
+			printf("ERROR: x should be float\n");
 			return 0;
 		}
 		error = guess(game, f);
@@ -721,8 +719,7 @@ int getCommand(Game *game) {
 	if (needToPrint)
 	{
 		printBoard(game->turn->board, game->mode);
-	}	
-	printf("\n");
+	}
 	return 0;
 }
 
