@@ -461,7 +461,7 @@ int getCommand(Game *game) {
 		if(handle_file_err(error)){
 			return 0;
 		}
-		printf("board has successfully loaded");
+		printf("board has successfully loaded\n");
 		needToPrint = 1;
 		break;
 	
@@ -474,7 +474,7 @@ int getCommand(Game *game) {
 		if(handle_file_err(error)){
 			return 0;
 		}
-		printf("board has successfully loaded");
+		printf("board has successfully loaded\n");
 		needToPrint = 1;
 		break;
 	
