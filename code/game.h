@@ -1,3 +1,8 @@
+/*
+ * This module contains mainly functions represent sudoku commands and all other auxiliary functions may be used
+ */
+
+
 #include "list_handler.h"
 #include "file_handler.h"
 
