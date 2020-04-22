@@ -357,6 +357,7 @@ int fillValues(Board *board, int x, int N){
 void chooseCells(Board *board, int y, int N){
 	int i, j, n;
 	int **mark = create2D(N, 0);
+	n = 0;
 	while(n < y){
 		i = rand() % N;
 		j = rand() % N;
@@ -367,9 +368,8 @@ void chooseCells(Board *board, int y, int N){
 	}
 	for(i=0; i<N; i++){
 		for(j=0; j<N; j++){
-			board->cells[i][j].state = REG;
 			if(!mark[i][j]){
-				board->cells[i][j].value = 0;
+				setCell(board, i, j, 0);
 			}
 		}
 	}
