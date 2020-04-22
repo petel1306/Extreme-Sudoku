@@ -406,7 +406,6 @@ int getCommand(Game *game) {
 	double *scores;
 	int needToPrint = 0;
 
-	printf("please enter a command\n");
     /*reads the input from the user */
     if(fgets(command_str, LEN_LIM + 3, stdin) == NULL){
         return 1;
@@ -716,8 +715,7 @@ int getCommand(Game *game) {
 	if (needToPrint)
 	{
 		printBoard(game->turn->board, game->mode);
-	}	
-	printf("\n");
+	}
 	return 0;
 }
 
