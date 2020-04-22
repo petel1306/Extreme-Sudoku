@@ -1,6 +1,10 @@
 #include "file_handler.h"
 #include <stdio.h>
 
+#ifndef NULL
+#define NULL   ((void *) 0)
+#endif
+
 /**
  * Scans file and transforms it into a Board.
  * @param solveMode = true --> function called from solveBoardFile;
