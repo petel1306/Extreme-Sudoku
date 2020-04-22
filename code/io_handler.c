@@ -650,7 +650,7 @@ int getCommand(Game *game) {
 		if(z){
 			printf("list of possible hints:\n");
 			for(i=0; i<z; i++){
-				printf("%d: %f.2", values[i], scores[i]);
+				printf("%d: %.2f\n", values[i], scores[i]);
 			}
 		}
 		else{
