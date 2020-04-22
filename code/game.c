@@ -296,7 +296,6 @@ ValidateError validate(Game *game, int *solvable) {
 	default:
 		return VALID_GUROBI_ERR;
 	}
-	printf("%d\n", *solvable);
 	return VALID_NONE;
 }
 
@@ -398,7 +397,6 @@ GenerateError generate(Game *game, int x, int y) {
 	for(try=0; try<1000; try++){
 		board = cloneBoard(game->turn->board);
 		if(fillValues(board, x, N)){
-			printBoard(board, 1);
 			switch (generateILP(board))
 			{
 			case 0:
@@ -473,7 +471,6 @@ HintError hint(Game *game, int x, int y, int *hintVal) {
 	default:
 		return HINT_GUROBI_ERR;
 	}
-	printf("%d\n", *hintVal);
 
 	return HINT_NONE;
 }

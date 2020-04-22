@@ -434,7 +434,6 @@ int solveILP(Board *board, int mode, int x, int y, int *v, float threshold, doub
 	}
 
 	/* print results */
-	printf("\nOptimization complete\n");
 
 	error = 0;
 
