@@ -123,15 +123,12 @@ int handle_set_err(SetError error){
 		return 1;
 
 	case SET_INVALID_VALUE:
-		printf("ERROR: value is invalid\n");
 		return 1;
 
 	case SET_INVALID_X:
-		printf("ERROR: x is invalid\n");
 		return 1;
 
 	case SET_INVALID_Y:
-		printf("ERROR: y is invalid\n");
 		return 1;
 
 	case SET_NOT_AVAILABLE:
@@ -211,11 +208,9 @@ int handle_generate_err(GenerateError error){
 		return 1;
 	
 	case GEN_INVALID_X:
-		printf("ERROR: x is invalid\n");
 		return 1;
 
 	case GEN_INVALID_Y:
-		printf("ERROR: y is invalid\n");
 		return 1;
 
 	case GEN_NONE:
@@ -303,11 +298,9 @@ int handle_hint_err(HintError error){
 		return 1;
 	
 	case HINT_INVALID_X:
-		printf("ERROR: x is invalid\n");
 		return 1;
 
 	case HINT_INVALID_Y:
-		printf("ERROR: y is invalid\n");
 		return 1;
 
 	case HINT_NONE:
@@ -718,7 +711,6 @@ int getCommand(Game *game) {
 		if(handle_reset_err(error)){
 			return 0;
 		}
-		printf("Reset...");
 		needToPrint = 1;
 		break;
 	

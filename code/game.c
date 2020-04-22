@@ -231,12 +231,15 @@ SetError set(Game *game, int x, int y, int val) {
 		return SET_NOT_AVAILABLE;
 	}
 	if (x < 1 || x > N) {
+		printf("x not in range (1,%d)", N);
 		return SET_INVALID_X;
 	}
 	if (y < 1 || y > N) {
+		printf("y not in range (1,%d)", N);
 		return SET_INVALID_Y;
 	}
 	if (val < 0 || val > N) {
+		printf("value not in range (1,%d)", N);
 		return SET_INVALID_VALUE;
 	}
 	if (preBoard->cells[rowInd][colInd].state == FIXED) {
@@ -396,9 +399,11 @@ GenerateError generate(Game *game, int x, int y) {
 		return GEN_NOT_AVAILABLE;
 	}
 	if (x < 0 || x > N2 - game->turn->board->nonEmptyAmount) {
+		printf("x not in range (0,%d)", N2 - game->turn->board->nonEmptyAmount);
 		return GEN_INVALID_X;
 	}
 	if (y <= 0 || y > N2) {
+		printf("x not in range (1,%d)", N2);
 		return GEN_INVALID_Y;
 	}
 	
@@ -445,9 +450,11 @@ HintError hintValidate(Game *game, int x, int y) {
 		return HINT_NOT_AVAILABLE;
 	}
 	if (x < 1 || x > N) {
+		printf("x not in range (1,%d)", N);
 		return HINT_INVALID_X;
 	}
 	if (y < 1 || y > N) {
+		printf("y not in range (1,%d)", N);
 		return HINT_INVALID_Y;
 	}
 	if (isErrBoard(board)) {
