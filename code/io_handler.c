@@ -404,6 +404,7 @@ int getCommand(Game *game) {
 	char *change;
 	int *values;
 	double *scores;
+	int needToPrint = 0;
 
 	printf("please enter a command\n");
     /*reads the input from the user */
@@ -460,6 +461,8 @@ int getCommand(Game *game) {
 		if(handle_file_err(error)){
 			return 0;
 		}
+		printf("board has successfully loaded");
+		needToPrint = 1;
 		break;
 	
 	case EDIT:
@@ -471,6 +474,8 @@ int getCommand(Game *game) {
 		if(handle_file_err(error)){
 			return 0;
 		}
+		printf("board has successfully loaded");
+		needToPrint = 1;
 		break;
 	
 	case MARK_ERRORS:
@@ -519,6 +524,7 @@ int getCommand(Game *game) {
 			return 0;
 		}
 		printf("successfully set cell (%d, %d) to %d\n", x, y, z);
+		needToPrint = 1;
 		break;
 	
 	case VALIDATE:
@@ -549,6 +555,7 @@ int getCommand(Game *game) {
 		if(handle_guess_err(error)){
 			return 0;
 		}
+		needToPrint = 1;
 		break;
 	
 	case GENERATE:
@@ -567,6 +574,7 @@ int getCommand(Game *game) {
 		if(handle_generate_err(error)){
 			return 0;
 		}
+		needToPrint = 1;
 		break;
 	
 	case UNDO:
@@ -581,6 +589,7 @@ int getCommand(Game *game) {
 		}
 		printf("%s\n", change);
 		free(change);
+		needToPrint = 1;
 		break;
 	
 	case REDO:
@@ -595,17 +604,19 @@ int getCommand(Game *game) {
 		}
 		printf("%s\n", change);
 		free(change);
+		needToPrint = 1;
 		break;
 	
 	case SAVE:
 		if(missingParameters(parameters_amount, 1, 0, SAVE)){
 			return 0;
 		}
-		error = edit(game, parameters[0]);
+		error = save(game, parameters[0]);
 		if(handle_save_err(error)){
 			return 0;
 		}
 		printf("board has saved to: %s\n", parameters[0]);
+		needToPrint = 1;
 		break;
 	
 	case HINT:
@@ -680,6 +691,7 @@ int getCommand(Game *game) {
 			return 0;
 		}
 		printf("board has autofilled");
+		needToPrint = 1;
 		break;
 	
 	case RESET:
@@ -691,6 +703,7 @@ int getCommand(Game *game) {
 			return 0;
 		}
 		printf("Reset...");
+		needToPrint = 1;
 		break;
 	
 	case EXIT:
@@ -700,6 +713,11 @@ int getCommand(Game *game) {
 		printf("invalid command\n");
 		break;
 	}
+	
+	if (needToPrint)
+	{
+		printBoard(game->turn->board, game->mode);
+	}	
 	printf("\n");
 	return 0;
 }
