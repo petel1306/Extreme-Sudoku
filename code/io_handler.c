@@ -375,6 +375,22 @@ int handle_reset_err(ResetError error){
 	return 0;
 }
 
+void handle_is_completed(BoardState error){
+	switch (error)
+	{
+	case ERRONEOUS_COMPLETED:
+		printf("it seems like some of the cells are erroneous, please try again\n");
+		break;
+
+	case SUCCESSFUL_COMPLETED:
+		printf("you made it!!!\nyou are one of the few who successed to solve the extreme sudoku!\nnow you can keep playing\nReset...\n");
+		break;
+
+	default:
+		break;
+	}
+}
+
 int* alloc_values(Game *game){
 	int N = game->turn->board->m * game->turn->board->n;
 	return (int*) malloc(sizeof(int) * N);
@@ -720,6 +736,8 @@ int getCommand(Game *game) {
 	{
 		printBoard(game->turn->board, game->mode);
 	}
+
+	handle_is_completed(isCompleted(game));
 	return 0;
 }
 
