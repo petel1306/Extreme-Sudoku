@@ -375,6 +375,22 @@ int handle_reset_err(ResetError error){
 	return 0;
 }
 
+void handle_is_completed(BoardState error){
+	switch (error)
+	{
+	case ERRONEOUS_COMPLETED:
+		printf("it seems like some of the cells are erroneous, please try again\n");
+		break;
+
+	case SUCCESSFUL_COMPLETED:
+		printf("you made it!!!\nyou are one of the few who successed to solve the extreme sudoku!\nnow you can keep playing\nReset...\n");
+		break;
+
+	default:
+		break;
+	}
+}
+
 int* alloc_values(Game *game){
 	int N = game->turn->board->m * game->turn->board->n;
 	return (int*) malloc(sizeof(int) * N);
@@ -422,7 +438,7 @@ int getCommand(Game *game) {
 	}
 	if(len>LEN_LIM){
 		/* commant to long */
-		printf("too many\n");
+		printf("line is too long\n");
 		while(!EOLfound){
 			ch = fgetc(stdin);
 			if(ch==EOF){
@@ -525,7 +541,6 @@ int getCommand(Game *game) {
 		if(handle_set_err(error)){
 			return 0;
 		}
-		printf("successfully set cell (%d, %d) to %d\n", x, y, z);
 		needToPrint = 1;
 		break;
 	
@@ -692,7 +707,6 @@ int getCommand(Game *game) {
 		if(handle_autofill_err(error)){
 			return 0;
 		}
-		printf("board has autofilled");
 		needToPrint = 1;
 		break;
 	
@@ -720,6 +734,8 @@ int getCommand(Game *game) {
 	{
 		print_board(game);
 	}
+
+	handle_is_completed(isCompleted(game));
 	return 0;
 }
 
