@@ -395,7 +395,6 @@ GenerateError generate(Game *game, int x, int y) {
 	for(try=0; try<1000; try++){
 		board = cloneBoard(game->turn->board);
 		if(fillValues(board, x, N)){
-			printBoard(board, 1);
 			switch (generateILP(board))
 			{
 			case 0:
