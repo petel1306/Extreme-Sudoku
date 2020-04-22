@@ -4,7 +4,7 @@
 /**
  * Represents the mode of the game. whether init, edit or solve.
  */
-typedef enum {INIT, EDIT, SOLVE} GameMode;
+typedef enum {INIT_MODE, EDIT_MODE, SOLVE_MODE} GameMode;
 
 
 /**

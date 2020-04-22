@@ -8,7 +8,7 @@
 Game* createGame() {
 	Game* game = (Game*) malloc(sizeof(Game));
 	game->turn = NULL;
-	game->mode = INIT;
+	game->mode = INIT_MODE;
 	game->markErrors = 1; /* Default value (as instructed in the project document)*/
 	return game;
 }
@@ -28,7 +28,7 @@ void destroyGame(Game *game) {
 BoardState isCompleted(Game *game) {
 	Board* board = game->turn->board;
 	int N = board->m * board->n;
-	if (game->mode != SOLVE) {
+	if (game->mode != SOLVE_MODE) {
 		return COMPLETED_UNAVAILABLE;
 	}
 	if (board->nonEmptyAmount < N * N) {
@@ -38,22 +38,22 @@ BoardState isCompleted(Game *game) {
 		return ERRONEOUS_COMPLETED;
 	}
 	deleteGameTurns(game);
-	game->mode = INIT;
+	game->mode = INIT_MODE;
 	return SUCCESSFUL_COMPLETED;
 }
 
 
 PrintError print_board(Game *game) {
-	if (game->mode == INIT) {
+	if (game->mode == INIT_MODE) {
 		return PRINT_NOT_AVAILABLE;
 	}
-	printBoard(game->turn->board, game->mode == EDIT || game->markErrors == 1);;
+	printBoard(game->turn->board, game->mode == EDIT_MODE || game->markErrors == 1);;
 	return PRINT_NONE;
 }
 
 
 MarkError mark_errors(Game *game, int bool) {
-	if (game->mode != SOLVE) {
+	if (game->mode != SOLVE_MODE) {
 		return MARK_NOT_AVAILABLE;
 	}
 	if ((bool>>1) != 0){
@@ -65,7 +65,7 @@ MarkError mark_errors(Game *game, int bool) {
 
 
 UndoRedoError undo(Game *game, char *output) {
-	if (game->mode == INIT) {
+	if (game->mode == INIT_MODE) {
 		return DO_NOT_AVAILABLE;
 	}
 	if (game->turn->prev == NULL) {
@@ -78,7 +78,7 @@ UndoRedoError undo(Game *game, char *output) {
 
 
 UndoRedoError redo(Game *game, char *output) {
-	if (game->mode == INIT) {
+	if (game->mode == INIT_MODE) {
 		return DO_NOT_AVAILABLE;
 	}
 	if (game->turn->next == NULL) {
@@ -91,7 +91,7 @@ UndoRedoError redo(Game *game, char *output) {
 
 
 ResetError reset(Game *game) {
-	if (game->mode == INIT) {
+	if (game->mode == INIT_MODE) {
 		return DO_NOT_AVAILABLE;
 	}
 	game->turn = getHead(game->turn);
@@ -132,7 +132,7 @@ FileError solve(Game *game, char* path) {
 
 	/* At this point the board was successfuly loaded from the path and valid. Now we save the new configutation. */
 	deleteGameTurns(game);
-	game->mode = SOLVE;
+	game->mode = SOLVE_MODE;
 	game->turn = createTurn();
 	markErroneousBoard(newBoard);
 	game->turn->board = newBoard;
@@ -158,7 +158,7 @@ FileError edit(Game *game, char* path) {
 	}
 
 	deleteGameTurns(game);
-	game->mode = EDIT;
+	game->mode = EDIT_MODE;
 	game->turn = createTurn();
 	markErroneousBoard(newBoard);
 	game->turn->board = newBoard;
@@ -170,9 +170,9 @@ FileError edit(Game *game, char* path) {
 
 SaveError save(Game *game, char *path) {
 	Board *board = game->turn->board;
-	unsigned int isEdit = (game->mode == EDIT);
+	unsigned int isEdit = (game->mode == EDIT_MODE);
 
-	if (game->mode == INIT) {
+	if (game->mode == INIT_MODE) {
 		return SAVE_NOT_AVAILABLE;
 	}
 	if (isEdit) {
@@ -215,7 +215,7 @@ SetError set(Game *game, int x, int y, int val) {
 	int preVal;
 
 	/* Validates conditions */
-	if (game->mode == INIT) {
+	if (game->mode == INIT_MODE) {
 		return SET_NOT_AVAILABLE;
 	}
 	if (x < 1 || x > N) {
@@ -250,7 +250,7 @@ AutofillError autofill(Game *game) {
 	int j;
 
 	/* Validates conditions */
-	if (game->mode != SOLVE) {
+	if (game->mode != SOLVE_MODE) {
 		return AUTO_NOT_AVAILABLE;
 	}
 	if(isErrBoard(game->turn->board)) {
@@ -279,7 +279,7 @@ AutofillError autofill(Game *game) {
 
 ValidateError validate(Game *game, int *solvable) {
 	/* Validates conditions */
-	if (game->mode == INIT) {
+	if (game->mode == INIT_MODE) {
 		return VALID_NOT_AVAILABLE;
 	}
 	if (isErrBoard(game->turn->board)) {
@@ -303,7 +303,7 @@ ValidateError validate(Game *game, int *solvable) {
 
 GuessError guess(Game *game, float x) {
 	/* Validates conditions */
-	if (game->mode != SOLVE) {
+	if (game->mode != SOLVE_MODE) {
 		return GUESS_NOT_AVAILABLE;
 	}
 	if (isErrBoard(game->turn->board)) {
@@ -313,7 +313,6 @@ GuessError guess(Game *game, float x) {
 	/* Updates the move */
 	newMove(game);
 	sprintf(game->turn->change, "guess the following cells:\n");
-
 	switch (guessLP(game->turn->board, x))
 	{
 	case 0:
@@ -380,7 +379,7 @@ GenerateError generate(Game *game, int x, int y) {
 	int try;
 	Board *board;
 	/* Validates conditions */
-	if (game->mode != EDIT) {
+	if (game->mode != EDIT_MODE) {
 		return GEN_NOT_AVAILABLE;
 	}
 	if (x < 0 || x > N2 - game->turn->board->nonEmptyAmount) {
@@ -427,7 +426,7 @@ HintError hintValidate(Game *game, int x, int y) { /* Validates hint, guess_hint
 	int colInd = x-1;
 	int N = board->m * board->n;
 
-	if (game->mode != SOLVE) {
+	if (game->mode != SOLVE_MODE) {
 		return HINT_NOT_AVAILABLE;
 	}
 	if (x < 1 || x > N) {
@@ -511,7 +510,7 @@ NumSolutionsError num_solutions(Game *game, int *sol_amount) {
 	int i, j;
 	int *filled = (int*) calloc(N*N, sizeof(int));
 	/* Validates conditions */
-	if (game->mode == INIT) {
+	if (game->mode == INIT_MODE) {
 		return NUM_NOT_AVAILABLE;
 	}
 	if (isErrBoard(game->turn->board)) {
