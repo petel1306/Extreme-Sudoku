@@ -292,7 +292,6 @@ ValidateError validate(Game *game, int *solvable) {
 	default:
 		return VALID_GUROBI_ERR;
 	}
-	printf("%d\n", *solvable);
 	return VALID_NONE;
 }
 
@@ -471,7 +470,6 @@ HintError hint(Game *game, int x, int y, int *hintVal) {
 	default:
 		return HINT_GUROBI_ERR;
 	}
-	printf("%d\n", *hintVal);
 
 	return HINT_NONE;
 }
