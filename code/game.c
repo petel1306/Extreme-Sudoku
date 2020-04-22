@@ -176,12 +176,15 @@ SaveError save(Game *game, char *path) {
 		return SAVE_NOT_AVAILABLE;
 	}
 	if (isEdit) {
-		switch (validateILP(game->turn->board))
+		if (isErrBoard(board)) {
+			return SAVE_ERRONEOUS;
+		}
+		switch (validateILP(board))
 		{
 		case 0:
-			return SAVE_WITHOUT_SOLUTION;
-		case 1:
 			break;
+		case 1:
+			return SAVE_WITHOUT_SOLUTION;
 		default:
 			return SAVE_GUROBI_ERR;
 		}
@@ -281,6 +284,7 @@ ValidateError validate(Game *game, int *solvable) {
 	if (isErrBoard(game->turn->board)) {
 		return VALID_ERRONEOUS;
 	}
+
 	switch (validateILP(game->turn->board))
 	{
 	case 0:
@@ -312,12 +316,10 @@ GuessError guess(Game *game, float x) {
 	switch (guessLP(game->turn->board, x))
 	{
 	case 0:
-		break;
 	case 1:
 		break;
 	default:
-		/* Petel --- maby need to remove the turn, i dont know */
-		cancelMove(game); /* Yali --- is that what you wanted? */
+		cancelMove(game);
 		return GUESS_GUROBI_ERR;
 	}
 	return GUESS_NONE;
