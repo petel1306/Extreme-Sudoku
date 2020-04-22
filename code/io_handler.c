@@ -435,7 +435,6 @@ int getCommand(Game *game) {
     /*gets the command */
     command = strtok(command_str, " ");
     if(command==NULL){
-		printf("invalid command\n");
         return 0;
     }
     /*gets the parameters, 3 at most */
