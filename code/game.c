@@ -71,7 +71,7 @@ UndoRedoError undo(Game *game, char *output) {
 	if (game->turn->prev == NULL) {
 		return DO_NO_MOVES;
 	}
-	sprintf(output, "Undo - %s", game->turn->change);
+	sprintf(output, "Undo : %s\n", game->turn->change);
 	game->turn = game->turn->prev;
 	return DO_NONE;
 }
@@ -85,7 +85,7 @@ UndoRedoError redo(Game *game, char *output) {
 		return DO_NO_MOVES;
 	}
 	game->turn = game->turn->next;
-	sprintf(output, "Redo - %s", game->turn->change);
+	sprintf(output, "Redo : %s\n", game->turn->change);
 	return DO_NONE;
 }
 
@@ -136,7 +136,7 @@ FileError solve(Game *game, char* path) {
 	game->turn = createTurn();
 	markErroneousBoard(newBoard);
 	game->turn->board = newBoard;
-	sprintf(game->turn->change, "solve %s\n", path);
+	sprintf(game->turn->change, "Solve %s\n", path);
 
 	return FILE_NONE;
 }
@@ -162,7 +162,7 @@ FileError edit(Game *game, char* path) {
 	game->turn = createTurn();
 	markErroneousBoard(newBoard);
 	game->turn->board = newBoard;
-	sprintf(game->turn->change, "edit %s\n", path);
+	sprintf(game->turn->change, "Edit %s\n", path);
 
 	return FILE_NONE;
 }
@@ -198,7 +198,7 @@ void newMove(Game *game) {
 }
 
 /**
- * Adds a new move and marks it as the current move.
+ * Cancels the current move and revert to the previous move.
  * Mainly used by {set, autofill, generate, guess} to cancel newMove function because an error.
  */
 void cancelMove(Game *game) {
@@ -234,7 +234,7 @@ SetError set(Game *game, int x, int y, int val) {
 	/* Updates the move */
 	newMove(game);
 	preVal = setCell(game->turn->board, rowInd, colInd, val);
-	sprintf(game->turn->change, "set cell X=%d, Y=%d from %d to %d\n", x, y, preVal, val);
+	sprintf(game->turn->change, "setting cell X=%d, Y=%d from %d to %d", x, y, preVal, val);
 	return SET_NONE;
 }
 
@@ -242,8 +242,6 @@ SetError set(Game *game, int x, int y, int val) {
 AutofillError autofill(Game *game) {
 	Board *preBoard = game->turn->board;
 	Board *newBoard;
-	char* change;
-	char addition[32];
 	int N = preBoard->m * preBoard->n;
 	int fillValue;
 	int i;
@@ -260,15 +258,12 @@ AutofillError autofill(Game *game) {
 	/* Updates the move */
 	newMove(game);
 	newBoard = game->turn->board;
-	change = game->turn->change;
-	sprintf(change, "fill the following cells:\n");
+	sprintf(game->turn->change, "automatically filling obvious values");
 	for(i=0; i<N; ++i) {
 		for (j=0; j<N; ++j) {
 			fillValue = hasSingleOption(preBoard, i, j);
 			if(fillValue) { /* There is a single value */
 				setCell(newBoard, i, j, fillValue);
-				sprintf(addition , "	<X=%d, Y=%d> : %d\n", j+1, i+1, fillValue);
-				strcat(change, addition);
 			}
 		}
 	}
@@ -312,7 +307,8 @@ GuessError guess(Game *game, float x) {
 
 	/* Updates the move */
 	newMove(game);
-	sprintf(game->turn->change, "guess the following cells:\n");
+	sprintf(game->turn->change, "filling all cell values with a score of %f or greater", x);
+
 	switch (guessLP(game->turn->board, x))
 	{
 	case 0:
@@ -321,11 +317,15 @@ GuessError guess(Game *game, float x) {
 		break;
 	default:
 		/* Petel --- maby need to remove the turn, i dont know */
+		cancelMove(game); /* Yali --- is that what you wanted? */
 		return GUESS_GUROBI_ERR;
 	}
 	return GUESS_NONE;
 }
 
+/**
+ * Yali - add documentation
+ */
 int fillValues(Board *board, int x, int N){
 	int n = 0;
 	int i, j, v, c;
@@ -351,6 +351,9 @@ int fillValues(Board *board, int x, int N){
 	return 1;
 }
 
+/**
+ * Yali - add documentation
+ */
 void chooseCells(Board *board, int y, int N){
 	int i, j, n;
 	int **mark = create2D(N, 0);
@@ -397,12 +400,13 @@ GenerateError generate(Game *game, int x, int y) {
 			{
 			case 0:
 				chooseCells(board, y, N);
+				board->nonEmptyAmount = y; /* Verifies "nonEmptyAmount" is updated */
+
 				/* Updates the move */
 				newMove(game);
-				sprintf(game->turn->change, "generate board with %d non-empty cells:\n", y);
+				sprintf(game->turn->change, "generating board with %d non-empty cells:\n", y);
 				destroyBoard(game->turn->board);
 				game->turn->board = board;
-				game->turn->board->nonEmptyAmount = y; /* Verifies "nonEmptyAmount" is updated */
 				return GEN_NONE;
 			
 			case 1:
@@ -419,8 +423,10 @@ GenerateError generate(Game *game, int x, int y) {
 	return GEN_NOT_SUCCEEDED;
 }
 
-/* SOME PROBLEM HERE */
-HintError hintValidate(Game *game, int x, int y) { /* Validates hint, guess_hint conditions */
+/**
+ * Validates hint, guess_hint conditions
+ */
+HintError hintValidate(Game *game, int x, int y) {
 	Board *board = game->turn->board;
 	int rowInd = y-1;
 	int colInd = x-1;

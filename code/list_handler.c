@@ -1,7 +1,7 @@
 #include "list_handler.h"
 #include <stdlib.h>
 
-#define STRING_BUFFER 1024
+#define STRING_BUFFER 128
 
 /**
  * Creates an empty turn
