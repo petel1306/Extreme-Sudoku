@@ -29,7 +29,6 @@
  */
 
 #include "io_handler.h"
-#include "main_aux.h"
 #include <stdio.h>
 
 

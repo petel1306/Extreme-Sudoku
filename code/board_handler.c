@@ -1,3 +1,8 @@
+/*
+ * This module contains the Board structure and all functions related to it, and may be used throughout the game
+ */
+
+
 #include "board_handler.h"
 #include "main_aux.h"
 #include <stdlib.h>

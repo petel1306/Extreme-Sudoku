@@ -1,3 +1,7 @@
+/*
+ * This module contains function load and save from/ to files
+ */
+
 
 #include "board_handler.h"
 

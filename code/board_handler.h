@@ -1,3 +1,7 @@
+/*
+ * This module contains the Board structure and all function related to it, and may be used throughout the game
+ */
+
 #ifndef BOARD_HANDLER_H_
 #define BOARD_HANDLER_H_
 

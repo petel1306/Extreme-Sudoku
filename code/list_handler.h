@@ -1,3 +1,7 @@
+/*
+ * This module contains the Turn structure and all functains tend to it
+ */
+
 #include "board_handler.h"
 
 /**
