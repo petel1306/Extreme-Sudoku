@@ -734,7 +734,7 @@ int getCommand(Game *game) {
 	
 	if (needToPrint)
 	{
-		printBoard(game->turn->board, game->mode);
+		print_board(game);
 	}
 
 	handle_is_completed(isCompleted(game));
