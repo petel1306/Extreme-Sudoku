@@ -1,9 +1,16 @@
+/** this module handles all the IO functionality of the program 
+ * the module have 2 major parts
+ * 1. getting user input, parse it and call to the proper function in module game
+ * 2. handle commands errors and print output to the user
+*/
+
 #define LEN_LIM 256
 #include "io_handler.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+/* an array contains mapping from each command to its defined value */
 static t_command commands[] = {
 	{"solve", SOLVE},
 	{"edit", EDIT},
@@ -24,6 +31,7 @@ static t_command commands[] = {
 	{"exit", EXIT}
 };
 
+/* recives a string and find its value in the array */
 int keyFromString(char *key)
 {
     int i;
@@ -34,6 +42,13 @@ int keyFromString(char *key)
     return BADKEY;
 }
 
+/**
+ * check if a command has wrong number of params
+ * @param givven number of params that are givven by the user
+ * @param requiers number of params that are requierd for the command
+ * @param optional number of optional params
+ * @param command value of command
+ */
 int missingParameters(int givven, int requierd, int optional, int command){
 	if(!optional){
 		if(givven != requierd){
@@ -424,6 +439,7 @@ int getCommand(Game *game) {
         return 1;
     }
 
+	/* check if the input is too long */
 	len = strlen(command_str);
 	if(len>0 && command_str[len-1] == '\n'){
 		command_str[--len] = '\0';
@@ -459,9 +475,6 @@ int getCommand(Game *game) {
         parameters_amount++;
         p = strtok(NULL, " ");
     }
-	if(parameters_amount){
-		p = parameters[0];
-	}
 	switch (keyFromString(command))
 	{
 	case SOLVE:
@@ -726,7 +739,7 @@ int getCommand(Game *game) {
 	{
 		print_board(game);
 	}
-
+	/* check if the board has completed */
 	handle_is_completed(isCompleted(game));
 	return 0;
 }

@@ -1,9 +1,18 @@
+/*
+ * This module contains the implementation of the exhaustive backtracking,
+ * as well as a Call structure and suported methodes for the recursive calls. 
+ */
+
 #include "backtracking.h"
 #include "board_handler.h"
 #include <stdlib.h>
 #include <stdio.h>
 
-
+/**
+ * the function replaces the return statement in recursive implementation
+ * @param call the current call
+ * @return the call that invoked the current call
+ */
 Call* returnCall(Call* call){
     Call* previousCall;
     previousCall = call->prev;
@@ -12,6 +21,14 @@ Call* returnCall(Call* call){
     return previousCall;
 }
 
+
+/**
+ * @param board the board to calculate solutions to
+ * @param filled that one never changed along the program and satisfies:
+ * filled[i*N+j] iff board[i][j]!=1 (in the original board)
+ * @returns number of solutions for board
+ * @invariant board is always leagle and not solved
+ */
 int numberOfSolutions(Board* board, int* filled){
     int N = board->n * board->m;
     int x, y, val;
@@ -36,6 +53,7 @@ int numberOfSolutions(Board* board, int* filled){
         y = index - x * N;
         val = board->cells[x][y].value;
         
+        /* if cell is filled */
         if(filled[x * N + y]){
             if(index == last){
                 /* last cell is filled - board is solved */
@@ -47,9 +65,10 @@ int numberOfSolutions(Board* board, int* filled){
                 stack->index++;
             }
         }
+        /* cell is mutable */
         else{
             if(val == N){
-                /* backtracking */
+                /* out of options - backtracking */
                 stack = returnCall(stack);
             }
             else{

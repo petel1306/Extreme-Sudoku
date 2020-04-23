@@ -5,7 +5,7 @@
 #include "board_handler.h"
 #include "game.h"
 
-/* creates 2D array ant initialize */
+/* creates 2D array and initializes it */
 int **create2D(int dim, int defaultValue)
 {
 	int i, j;
@@ -21,6 +21,7 @@ int **create2D(int dim, int defaultValue)
 	return mat;
 }
 
+/* destroys array created by create2D */
 void destroy2D(int **mat, int dim)
 {
 	int i;
@@ -31,6 +32,14 @@ void destroy2D(int **mat, int dim)
 	free(mat);
 }
 
+/**
+ * calculates all possible values for group of cells
+ * @pre cells length is n
+ * @pre cellsOptions is n
+ * @param cells list of ponters to cells
+ * @param cellsOptions list of length n initialized to 1's
+ * @post cellsOptions[v] iff there is no cell in cells with value v+1
+ */
 void calculateCellsOptions(Cell **cells, int *cellsOptions, int n)
 {
 	int i, v;
@@ -42,6 +51,18 @@ void calculateCellsOptions(Cell **cells, int *cellsOptions, int n)
 	}
 }
 
+/**
+ * calculates all possible options for every cell on the board
+ * for every possible value k, for the cell (i, j) - \
+ * options[i][j][k] contains index for the variable Xijk
+ * @param options 3D array initialized to zero
+ * @param numberOfOptions 2D array initialized to zero
+ * @return total number of options for all the cells in the board
+ * @post options[i][j][k] iff k is a valid value for cell i, j
+ * @post options contains values from 0 to @return value
+ * @post for every v>0 there are no two cells in options with the same value
+ * @post numberOfOptions[i][j] contains the number of possible values for cell (i, j)
+ */
 int calculateOptions(Board *board, int ***options, int **numberOfOptions)
 {
 	int N = board->n * board->m;
@@ -85,6 +106,7 @@ int calculateOptions(Board *board, int ***options, int **numberOfOptions)
 					blockInd = getBlockInd(board, i, j);
 					if (rowsOptions[i][v] && columnsOptions[j][v] && blocksOptions[blockInd][v])
 					{
+						/* if the value is valid in his row, block, column - add to options */
 						options[i][j][v] = ++counter;
 						numberOfOptions[i][j]++;
 					}
@@ -102,6 +124,7 @@ int calculateOptions(Board *board, int ***options, int **numberOfOptions)
 
 int setTargetFunction(GRBmodel *model, GRBenv *env, int N, int integer, double *obj, char *vtype, char type, int numberOfVariables){
 	int i, error;
+	/* if using LP - set x<=1.0 */
 	double *bounds = integer ? NULL : (double*) malloc(numberOfVariables * sizeof(double));
 	for(i=0; i<numberOfVariables; i++){
 		obj[i] = (rand() % (2 * N)) + 1;
@@ -132,6 +155,7 @@ int setSingalValueConstraints(GRBmodel *model, GRBenv *env, int *ind, double *va
 			v = 0;
 			while(v<n){
 				if(indexMapping[i][j][k]){
+					/* if k is a possible value for the cell - ad it do the constrain */
 					ind[v] = indexMapping[i][j][k] - 1;
 					val[v] = 1;
 					v++;
@@ -152,6 +176,19 @@ int setSingalValueConstraints(GRBmodel *model, GRBenv *env, int *ind, double *va
 	return 0;
 }
 
+/**
+ * for every k set a constrain that limits
+ * the number of cells with value k to 1 in the area:
+ *   (i_s, j_s) * * * (i_s, j_f)
+ *       * * * * * * * * * 
+ *       * * * * * * * * *
+ *       * * * * * * * * *
+ *       * * * * * * * * *
+ *       * * * * * * * * *
+ *       * * * * * * * * *
+ *   (i_f, j_s) * * * (i_f, j_f)
+ * 
+*/
 int limitValueInArea(GRBmodel *model, int i_s, int i_f, int j_s, int j_f, int *ind, double *val, int ***indexMapping, int N){
 	int i, j, k, n, error;
 	for(k=0; k<N; k++){
@@ -175,6 +212,7 @@ int limitValueInArea(GRBmodel *model, int i_s, int i_f, int j_s, int j_f, int *i
 	return 0;
 }
 
+/* for every row i limits the number of cells with value k to 1 */
 int limitValueInRows(GRBmodel *model, GRBenv *env, int *ind, double *val, int ***indexMapping, int N){
 	int i, error;
 	for(i=0; i<N; i++){
@@ -187,6 +225,7 @@ int limitValueInRows(GRBmodel *model, GRBenv *env, int *ind, double *val, int **
 	return 0;
 }
 
+/* for every column j limits the number of cells with value k to 1 */
 int limitValueInColumns(GRBmodel *model, GRBenv *env, int *ind, double *val, int ***indexMapping, int N){
 	int j, error;
 	for(j=0; j<N; j++){
@@ -199,6 +238,7 @@ int limitValueInColumns(GRBmodel *model, GRBenv *env, int *ind, double *val, int
 	return 0;
 }
 
+/* for every block b limits the number of cells with value k to 1 */
 int limitValueInBlocks(GRBmodel *model, GRBenv *env, int *ind, double *val, int ***indexMapping, int m, int n){
 	int i, j, error;
 	int N = m * n;
@@ -214,6 +254,7 @@ int limitValueInBlocks(GRBmodel *model, GRBenv *env, int *ind, double *val, int 
 	return 0;
 }
 
+/* set all the limits to avoid cllisions in row, colimn, block */
 int setAreaColissionConstraints(GRBmodel *model, GRBenv *env, int *ind, double *val, int ***indexMapping, int m, int n){
 	int N = n * m;
 	return (
@@ -223,6 +264,7 @@ int setAreaColissionConstraints(GRBmodel *model, GRBenv *env, int *ind, double *
 	);
 }
 
+/* implementation for function guess */
 void guessImp(Board *board, int*** indexMapping, int** numberOfOptions, int* ind, int N, float threshold, double* sol){
 	int i, j, k, n, s, t;
 	for(i=0; i<N; i++){
@@ -231,7 +273,8 @@ void guessImp(Board *board, int*** indexMapping, int** numberOfOptions, int* ind
 				continue;
 			}
 			n = 0;
-			s = 0;
+			s = 0; /* sum of all the scores */
+			/* find all values with score grater or equal to the threshold */
 			for(k=0; k<N; k++){
 				if(indexMapping[i][j][k] && sol[indexMapping[i][j][k] - 1] >= threshold){
 					ind[n++] = k;
@@ -239,14 +282,16 @@ void guessImp(Board *board, int*** indexMapping, int** numberOfOptions, int* ind
 				}
 			}
 			if(n==1){
+				/* if there is only one - set it */
 				setCell(board, i, j, ind[0]+1);
 			}
 			else if(n>1){
-				s *= rand() / RAND_MAX;
+				s *= rand() / RAND_MAX; /* choose a random number between 0 and s */ 
 				t = 0;
 				for(k=0; k<n; t++){
 					t += sol[indexMapping[i][j][ind[k]] - 1];
 					if(t >= s){
+						/* value has chosen */
 						break;
 					}
 				} 
@@ -256,6 +301,9 @@ void guessImp(Board *board, int*** indexMapping, int** numberOfOptions, int* ind
 	}
 }
 
+/** implementation for function generate
+ * simply fill the board with the correct values
+ */
 void generateImp(Board *board, int*** indexMapping, int** numberOfOptions, int N, double* sol){
 	int i, j, k;
 	for(i=0; i<N; i++){
@@ -273,6 +321,7 @@ void generateImp(Board *board, int*** indexMapping, int** numberOfOptions, int N
 	}
 }
 
+/** implementation for function hint */
 void hintImp(int x, int y, int *v, int*** indexMapping, int N, double* sol){
 	int k;
 	for(k=0; k<N; k++){
@@ -283,6 +332,9 @@ void hintImp(int x, int y, int *v, int*** indexMapping, int N, double* sol){
 	}
 }
 
+/** implementation for function guess_hint
+ * @post for every k between 1 to N scores[k] contains the value of Xxyk
+*/
 void guess_hintImp(int x, int y, double* scores, int*** indexMapping, double* sol, int N){
 	int k;
 	for(k=0; k<N; k++){
@@ -338,7 +390,7 @@ int solveILP(Board *board, int mode, int x, int y, int *v, float threshold, doub
 	ind = (int*) malloc(N * sizeof(int));
 	vtype = (char*) malloc(numberOfVariables * sizeof(char));
 
-	/* Create environment - log file is mip1.log */
+	/* Create environment - log file is solve.log */
 	error = GRBloadenv(&env, "solve.log");
 	if (error)
 	{
@@ -353,7 +405,7 @@ int solveILP(Board *board, int mode, int x, int y, int *v, float threshold, doub
 		return GUROBI_FAILURE;
 	}
 
-	/* Create an empty model named "mip1" */
+	/* Create an empty model named "solve1" */
 	error = GRBnewmodel(env, &model, "solve1", 0, NULL, NULL, NULL, NULL, NULL);
 	if (error)
 	{
