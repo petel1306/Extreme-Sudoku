@@ -4,7 +4,6 @@
 
 
 #include "board_handler.h"
-#include "main_aux.h"
 #include <stdlib.h>
 #include <stdio.h>
 
