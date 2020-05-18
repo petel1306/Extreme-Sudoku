@@ -10,7 +10,7 @@
 #include <string.h>
 
 Game* createGame() {
-	Game* game = (Game*) malloc(sizeof(Game));
+	Game *game = (Game*) malloc(sizeof(Game));
 	game->turn = NULL;
 	game->mode = INIT_MODE;
 	game->markErrors = 1; /* Default value (as instructed in the project document)*/
@@ -30,6 +30,14 @@ void destroyGame(Game *game) {
 }
 
 
+void initStat(Game *game) {
+	game->mode = INIT_MODE;
+	game->turn = createTurn();
+	game->turn->board = createBoard(1, 1);
+	sprintf(game->turn->change, "Init!\n");
+}
+
+
 BoardState isCompleted(Game *game) {
 	Board* board;
 	int N;
@@ -46,7 +54,7 @@ BoardState isCompleted(Game *game) {
 		return ERRONEOUS_COMPLETED;
 	}
 	deleteGameTurns(game);
-	game->mode = INIT_MODE;
+	initStat(game);
 	return SUCCESSFUL_COMPLETED;
 }
 

@@ -29,6 +29,7 @@ void destroyGame(Game *game);
 
 void deleteGameTurns(Game *game);
 
+void initStat(Game *game);
 
 typedef enum {NOT_COMPLETED, ERRONEOUS_COMPLETED, SUCCESSFUL_COMPLETED, COMPLETED_UNAVAILABLE} BoardState;
 /**

@@ -65,7 +65,9 @@ FileError loadFileToBoard(char *path, Board **boardPointer, int isSolve) {
 	*boardPointer = board;
 
 	exit: /* Exiting clean */
-	fclose(file);
+	if (error != FILE_CANT_OPEN) {
+		fclose(file);
+	}
 	if (error != FILE_NONE) {
 		destroyBoard(board);
 	}

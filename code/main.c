@@ -10,6 +10,7 @@ int main() {
 	Game* game = createGame(); /* Creates game on init mode */
 	int isTimeToExit;
 
+	initStat(game);
 	printTitle();
 	while (1) {
 		isTimeToExit = getCommand(game);
