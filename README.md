@@ -1,29 +1,5 @@
 # README #
-
-This README would normally document whatever steps are necessary to get your application up and running.
-
-### What is this repository for? ###
-
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
-
-### How do I get set up? ###
-
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
-
-### Contribution guidelines ###
-
-* Writing tests
-* Code review
-* Other guidelines
-
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
+This a complicated Sudoku project, me and @yali have programmed in c language.
+The project was made as part of the course "Software Project" - which we took in the second year of our Computer Science degree at Tel Aviv University.
+The project guidelines appear in a pdf aside from this README. You are free to clone, play, and give us feedback :)
+Enjoy!
